@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transporte-medeiros-v4';
+const CACHE_NAME = 'transporte-medeiros-v5';
 const APP_SHELL = [
   './',
   './index.html',
@@ -6,7 +6,8 @@ const APP_SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/icon.svg'
+  './icons/icon.svg',
+  './icons/watermark-medeiros.jpg'
 ];
 
 const EXTERNAL_CACHEABLE = [
