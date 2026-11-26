@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transporte-medeiros-v1';
+const CACHE_NAME = 'transporte-medeiros-v2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,9 +9,22 @@ const APP_SHELL = [
   './icons/icon.svg'
 ];
 
+const EXTERNAL_CACHEABLE = [
+  'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'
+];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await cache.addAll(APP_SHELL);
+      await Promise.allSettled(
+        EXTERNAL_CACHEABLE.map((url) =>
+          fetch(url, { mode: 'cors' }).then((res) => {
+            if (res && res.ok) return cache.put(url, res);
+          })
+        )
+      );
+    })
   );
   self.skipWaiting();
 });
@@ -60,7 +73,11 @@ self.addEventListener('fetch', (event) => {
     caches.match(req).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((res) => {
-        if (res && res.status === 200 && url.origin === self.location.origin) {
+        if (
+          res &&
+          res.status === 200 &&
+          (url.origin === self.location.origin || url.hostname.includes('cdn.jsdelivr.net'))
+        ) {
           const clone = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
         }

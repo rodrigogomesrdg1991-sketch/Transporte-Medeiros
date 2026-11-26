@@ -346,6 +346,13 @@
       box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
     }
 
+    .btn-pdf {
+      background: var(--blue-900);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.22);
+    }
+    .btn-pdf:hover { background: var(--blue-950); }
+
     .btn-danger-soft {
       background: var(--danger-bg);
       color: var(--danger);
@@ -370,11 +377,16 @@
 
     .action-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
       margin-top: 12px;
     }
     .action-row .full { grid-column: 1 / -1; }
+    .action-row .btn-compact {
+      padding: 11px 8px;
+      font-size: 0.82rem;
+      gap: 5px;
+    }
 
     .opt-status {
       display: inline-flex;
@@ -681,11 +693,13 @@
       .desktop-nav { display: flex; }
       .bottom-nav { display: none; }
       .modal-backdrop { align-items: center; }
-      .action-row { grid-template-columns: repeat(3, 1fr); }
+      .action-row { grid-template-columns: 1.5fr 1fr 1fr 1fr; }
       .action-row .full { grid-column: auto; }
+      .action-row .btn-compact { padding: 11px 13px; font-size: 0.86rem; gap: 7px; }
       .toast { bottom: 26px; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
 </head>
 <body>
 
@@ -776,12 +790,16 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Otimizar Rota Mais Rápida
           </button>
-          <button class="btn btn-secondary" onclick="openAddModal('novo')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Nova Parada
+          <button class="btn btn-secondary btn-compact" onclick="openAddModal('novo')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Parada
           </button>
-          <button class="btn btn-whatsapp" onclick="shareWhatsApp()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <button id="btnDownloadPdf" class="btn btn-pdf btn-compact" onclick="downloadRoutePDF()" title="Baixar relatório da rota do dia em PDF">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+            PDF
+          </button>
+          <button class="btn btn-whatsapp btn-compact" onclick="shareWhatsApp()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
             WhatsApp
           </button>
         </div>
@@ -1401,6 +1419,335 @@
       window.open(url, '_blank', 'noopener');
     }
 
+    function downloadRoutePDF() {
+      if (stops.length === 0) {
+        showToast('Nenhuma parada na rota para gerar PDF.');
+        return;
+      }
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('pt-BR');
+      const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const fileDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const fileName = `transporte-medeiros-rota-${fileDate}.pdf`;
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        openPrintableRouteFallback(dateStr, timeStr);
+        return;
+      }
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const margin = 14;
+        const contentW = pageW - margin * 2;
+
+        const doneCount = stops.filter(s => s.done).length;
+        const totalCount = stops.length;
+        const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
+        const originLabel = settings.useGps
+          ? `GPS (${settings.baseLat.toFixed(4)}, ${settings.baseLng.toFixed(4)})`
+          : `${settings.baseName} (${settings.baseCity})`;
+
+        const drawPageHeader = (isFirstPage) => {
+          // Deep blue header banner
+          doc.setFillColor(30, 58, 138);
+          doc.rect(0, 0, pageW, isFirstPage ? 34 : 20, 'F');
+          doc.setFillColor(37, 99, 235);
+          doc.rect(0, isFirstPage ? 31 : 18, pageW, 3, 'F');
+
+          doc.setTextColor(255, 255, 255);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(isFirstPage ? 17 : 12);
+          doc.text('TRANSPORTE MEDEIROS', margin, isFirstPage ? 14 : 11.5);
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(isFirstPage ? 9.5 : 8.5);
+          doc.setTextColor(219, 234, 254);
+          doc.text(
+            isFirstPage ? 'Relatório de Rota e Entregas do Dia' : 'Relatório de Rota do Dia (continuação)',
+            margin,
+            isFirstPage ? 21 : 16
+          );
+
+          // Date & status on right
+          doc.setTextColor(255, 255, 255);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9.5);
+          doc.text(`${dateStr}  •  ${timeStr}`, pageW - margin, isFirstPage ? 14 : 12, { align: 'right' });
+
+          if (isFirstPage) {
+            const statusLabel = isOptimized ? 'ROTA OTIMIZADA' : 'SEQUÊNCIA MANUAL';
+            const badgeW = 38;
+            const badgeX = pageW - margin - badgeW;
+            doc.setFillColor(isOptimized ? 5 : 217, isOptimized ? 150 : 119, isOptimized ? 105 : 6);
+            doc.roundedRect(badgeX, 18, badgeW, 7, 2, 2, 'F');
+            doc.setFontSize(7.5);
+            doc.setTextColor(255, 255, 255);
+            doc.text(statusLabel, badgeX + badgeW / 2, 22.7, { align: 'center' });
+          }
+        };
+
+        drawPageHeader(true);
+        let y = 41;
+
+        // Origin strip
+        doc.setFillColor(239, 246, 255);
+        doc.setDrawColor(191, 219, 254);
+        doc.roundedRect(margin, y, contentW, 13, 2.5, 2.5, 'FD');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(29, 78, 216);
+        doc.text('PONTO DE PARTIDA', margin + 4, y + 4.8);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(15, 23, 42);
+        const originLines = doc.splitTextToSize(
+          settings.returnToBase ? `${originLabel}  •  Com retorno à base` : originLabel,
+          contentW - 8
+        );
+        doc.text(originLines[0], margin + 4, y + 10);
+        y += 17;
+
+        // 3 Summary KPI boxes
+        const kpiGap = 4;
+        const kpiW = (contentW - kpiGap * 2) / 3;
+        const kpis = [
+          { label: 'ENTREGAS REALIZADAS', value: `${doneCount} / ${totalCount} (${pct}%)` },
+          { label: 'DISTÂNCIA ESTIMADA', value: routeMeta.distKm != null ? `${routeMeta.distKm} km` : 'Não calculada' },
+          { label: 'TEMPO EM ESTRADA', value: routeMeta.durationMin != null ? formatDuration(routeMeta.durationMin) : 'Não calculado' }
+        ];
+        kpis.forEach((k, i) => {
+          const x = margin + i * (kpiW + kpiGap);
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(226, 232, 240);
+          doc.roundedRect(x, y, kpiW, 16, 2.5, 2.5, 'FD');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(7);
+          doc.setTextColor(100, 116, 139);
+          doc.text(k.label, x + 3.5, y + 5.5);
+          doc.setFontSize(11);
+          doc.setTextColor(15, 23, 42);
+          doc.text(k.value, x + 3.5, y + 12.2);
+        });
+        y += 22;
+
+        // Section heading
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(15, 23, 42);
+        doc.text('Sequência de Paradas', margin, y);
+        y += 4;
+
+        // Table Header helper
+        const cols = {
+          num: { x: margin, w: 10 },
+          client: { x: margin + 10, w: 62 },
+          cityAddr: { x: margin + 72, w: 60 },
+          leg: { x: margin + 132, w: 24 },
+          status: { x: margin + 156, w: 26 }
+        };
+
+        const drawTableHeader = (currY) => {
+          doc.setFillColor(29, 78, 216);
+          doc.roundedRect(margin, currY, contentW, 8, 1.5, 1.5, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(8);
+          doc.setTextColor(255, 255, 255);
+          doc.text('#', cols.num.x + 3.5, currY + 5.4);
+          doc.text('Cliente / Observação', cols.client.x + 2, currY + 5.4);
+          doc.text('Cidade e Endereço', cols.cityAddr.x + 2, currY + 5.4);
+          doc.text('Trecho', cols.leg.x + 2, currY + 5.4);
+          doc.text('Status', cols.status.x + 2, currY + 5.4);
+          return currY + 9.5;
+        };
+
+        y = drawTableHeader(y);
+
+        // Render rows
+        stops.forEach((s, idx) => {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(8.8);
+          const nameLines = doc.splitTextToSize(s.name || 'Sem nome', cols.client.w - 4);
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7.6);
+          const obsLines = s.obs ? doc.splitTextToSize(`Obs.: ${s.obs}`, cols.client.w - 4) : [];
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(8.2);
+          const cityLines = doc.splitTextToSize(s.city || '-', cols.cityAddr.w - 4);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7.6);
+          const addrLines = s.address ? doc.splitTextToSize(s.address, cols.cityAddr.w - 4) : [];
+
+          const leftH = nameLines.length * 4 + (obsLines.length ? obsLines.length * 3.5 + 1 : 0);
+          const midH = cityLines.length * 3.9 + (addrLines.length ? addrLines.length * 3.5 + 1 : 0);
+          const rowH = Math.max(11, Math.max(leftH, midH) + 5);
+
+          // Page break check
+          if (y + rowH > pageH - 22) {
+            doc.addPage();
+            drawPageHeader(false);
+            y = 26;
+            y = drawTableHeader(y);
+          }
+
+          // Row background (zebra)
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(margin, y, contentW, rowH, 'F');
+          }
+          doc.setDrawColor(226, 232, 240);
+          doc.line(margin, y + rowH, margin + contentW, y + rowH);
+
+          // # index
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(8.5);
+          doc.setTextColor(37, 99, 235);
+          doc.text(String(idx + 1), cols.num.x + 3.5, y + 5.5);
+
+          // Client + obs
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(8.8);
+          doc.setTextColor(15, 23, 42);
+          doc.text(nameLines, cols.client.x + 2, y + 5.2);
+          if (obsLines.length) {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text(obsLines, cols.client.x + 2, y + 5.2 + nameLines.length * 4 + 0.8);
+          }
+
+          // City + Address
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(8.2);
+          doc.setTextColor(30, 58, 138);
+          doc.text(cityLines, cols.cityAddr.x + 2, y + 5.2);
+          if (addrLines.length) {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7.6);
+            doc.setTextColor(71, 85, 105);
+            doc.text(addrLines, cols.cityAddr.x + 2, y + 5.2 + cityLines.length * 3.9 + 0.6);
+          }
+
+          // Leg
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7.8);
+          doc.setTextColor(71, 85, 105);
+          if (s.legKm != null) {
+            doc.text(`${s.legKm} km`, cols.leg.x + 2, y + 5.2);
+            doc.text(`~${s.legMin} min`, cols.leg.x + 2, y + 9.0);
+          } else {
+            doc.text('--', cols.leg.x + 2, y + 5.5);
+          }
+
+          // Status badge
+          const isDone = !!s.done;
+          doc.setFillColor(isDone ? 236 : 255, isDone ? 253 : 251, isDone ? 245 : 235);
+          doc.setDrawColor(isDone ? 167 : 253, isDone ? 243 : 230, isDone ? 208 : 138);
+          doc.roundedRect(cols.status.x + 1, y + 2.2, 24, 5.8, 1.5, 1.5, 'FD');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(7.2);
+          doc.setTextColor(isDone ? 5 : 180, isDone ? 150 : 83, isDone ? 105 : 9);
+          doc.text(isDone ? 'Concluída' : 'Pendente', cols.status.x + 13, y + 6.1, { align: 'center' });
+          if (isDone && s.doneAt) {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(6.8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`às ${s.doneAt}`, cols.status.x + 13, y + 10.6, { align: 'center' });
+          }
+
+          y += rowH;
+        });
+
+        // Conference / Signature block
+        if (y + 26 > pageH - 16) {
+          doc.addPage();
+          drawPageHeader(false);
+          y = 28;
+        } else {
+          y += 10;
+        }
+
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(226, 232, 240);
+        doc.roundedRect(margin, y, contentW, 20, 2.5, 2.5, 'FD');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text('CONFERÊNCIA DA VIAGEM', margin + 4, y + 5.5);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.2);
+        doc.setTextColor(51, 65, 85);
+        doc.text('Motorista: ______________________________', margin + 4, y + 13.5);
+        doc.text('Placa / Veículo: _____________________', margin + 88, y + 13.5);
+        doc.text('KM Final: ____________', margin + 148, y + 13.5);
+
+        // Footer on every page
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let p = 1; p <= totalPages; p++) {
+          doc.setPage(p);
+          doc.setDrawColor(226, 232, 240);
+          doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(100, 116, 139);
+          doc.text(`Transporte Medeiros  •  Emitido em ${dateStr} às ${timeStr}`, margin, pageH - 7.5);
+          doc.text(`Página ${p} de ${totalPages}`, pageW - margin, pageH - 7.5, { align: 'right' });
+        }
+
+        doc.save(fileName);
+        showToast('PDF da rota baixado com sucesso!');
+      } catch (err) {
+        openPrintableRouteFallback(dateStr, timeStr);
+      }
+    }
+
+    function openPrintableRouteFallback(dateStr, timeStr) {
+      const doneCount = stops.filter(s => s.done).length;
+      const rows = stops.map((s, idx) => `
+        <tr>
+          <td style="font-weight:700;color:#1D4ED8;">${idx + 1}</td>
+          <td><strong>${escapeHtml(s.name)}</strong>${s.obs ? `<br><small style="color:#64748B;">Obs.: ${escapeHtml(s.obs)}</small>` : ''}</td>
+          <td><strong>${escapeHtml(s.city)}</strong>${s.address ? `<br><small style="color:#475569;">${escapeHtml(s.address)}</small>` : ''}</td>
+          <td>${s.legKm != null ? `${s.legKm} km<br><small>~${s.legMin} min</small>` : '--'}</td>
+          <td style="font-weight:700;color:${s.done ? '#059669' : '#B45309'};">${s.done ? `Concluída${s.doneAt ? ' (' + escapeHtml(s.doneAt) + ')' : ''}` : 'Pendente'}</td>
+        </tr>
+      `).join('');
+
+      const w = window.open('', '_blank');
+      if (!w) {
+        showToast('Permita pop-ups ou fique online para baixar o PDF.');
+        return;
+      }
+      w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Transporte Medeiros - Rota ${dateStr}</title>
+        <style>
+          body{font-family:Arial,sans-serif;color:#0F172A;margin:24px;}
+          .head{background:#1E3A8A;color:#fff;padding:16px 20px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;}
+          .meta{display:flex;gap:12px;margin:14px 0;font-size:13px;}
+          .box{flex:1;background:#F8FAFC;border:1px solid #E2E8F0;padding:10px 12px;border-radius:8px;}
+          table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}
+          th{background:#1D4ED8;color:#fff;text-align:left;padding:8px;}
+          td{border-bottom:1px solid #E2E8F0;padding:8px;vertical-align:top;}
+        </style></head><body>
+        <div class="head"><div><h2 style="margin:0;">TRANSPORTE MEDEIROS</h2><small>Relatório de Rota do Dia</small></div><div><strong>${dateStr}</strong> • ${timeStr}</div></div>
+        <div class="meta">
+          <div class="box"><strong>Partida:</strong><br>${escapeHtml(settings.baseName)}</div>
+          <div class="box"><strong>Entregas:</strong><br>${doneCount}/${stops.length} concluídas</div>
+          <div class="box"><strong>Estimativa:</strong><br>${routeMeta.distKm != null ? routeMeta.distKm + ' km' : '--'} • ${routeMeta.durationMin != null ? formatDuration(routeMeta.durationMin) : '--'}</div>
+        </div>
+        <table><thead><tr><th>#</th><th>Cliente</th><th>Cidade / Endereço</th><th>Trecho</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+        <script>window.onload=function(){window.print();};<\/script>
+        </body></html>`);
+      w.document.close();
+      showToast('Abrindo visualização para salvar em PDF...');
+    }
+
+
     function useCurrentGPS() {
       if (!navigator.geolocation) {
         showToast('GPS não disponível neste navegador.');
@@ -1497,7 +1844,7 @@
         const badgeLabel = s.done ? '✓' : orderNum;
         const legHtml = (!s.done && s.legKm != null)
           ? `<div class="stop-leg">Trecho: ${s.legKm} km • ~${s.legMin} min</div>`
-          : '';
+          : (s.done && s.doneAt ? `<div class="stop-leg" style="background:var(--success-bg);color:var(--success);">Concluída às ${escapeHtml(s.doneAt)}</div>` : '');
         const obsHtml = s.obs ? `<div class="stop-address" style="color:#475569;">📝 ${escapeHtml(s.obs)}</div>` : '';
 
         return `
@@ -1539,6 +1886,9 @@
       const s = stops.find(x => x.id === id);
       if (!s) return;
       s.done = !s.done;
+      s.doneAt = s.done
+        ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        : null;
       stops = [...stops.filter(x => !x.done), ...stops.filter(x => x.done)];
       saveState();
       renderRouteView();
