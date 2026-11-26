@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Medeiros" />
 
-  <link rel="manifest" href="./manifest.json" />
+  <link rel="manifest" href="./manifest.json" crossorigin="use-credentials" />
   <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -2400,7 +2400,7 @@
         }
 
         doc.save(fileName);
-        showToast('PDF da rota baixado com marca d\'água!');
+        showToast("PDF da rota baixado com marca d'água!");
       } catch (err) {
         openPrintableRouteFallback(dateStr, timeStr, fadedWm ? fadedWm.dataUrl : null);
       }
@@ -3249,7 +3249,7 @@
       if (subEl) {
         subEl.textContent = enabled
           ? 'Aplicada automaticamente ao fundo de todas as páginas do relatório PDF.'
-          : 'Marca d'água desativada (marque abaixo para exibir no PDF).';
+          : "Marca d'água desativada (marque abaixo para exibir no PDF).";
       }
 
       const resetBtn = document.getElementById('btnResetWm');
@@ -3269,20 +3269,20 @@
       settings.pdfWatermarkEnabled = !!checked;
       saveState();
       renderWatermarkSettings();
-      showToast(checked ? 'Marca d'água ativada no PDF.' : 'Marca d'água desativada.');
+      showToast(checked ? "Marca d'água ativada no PDF." : "Marca d'água desativada.");
     }
 
     function setWatermarkOpacity(val) {
       settings.pdfWatermarkOpacity = val;
       saveState();
       renderWatermarkSettings();
-      showToast('Intensidade da marca d'água atualizada!');
+      showToast("Intensidade da marca d'água atualizada!");
     }
 
     async function handleCustomWatermarkUpload(inputEl) {
       const file = inputEl.files && inputEl.files[0];
       if (!file) return;
-      showToast('Carregando nova marca d'água...');
+      showToast("Carregando nova marca d'água...");
       try {
         const compressed = await compressImageFile(file, 800, 0.78);
         customWatermark = { dataUrl: compressed.dataUrl, width: compressed.width, height: compressed.height };
@@ -3290,7 +3290,7 @@
         settings.pdfWatermarkEnabled = true;
         saveState();
         renderWatermarkSettings();
-        showToast('Nova imagem de marca d'água salva!');
+        showToast("Nova imagem de marca d'água salva!");
       } catch (e) {
         showToast('Não foi possível carregar esta imagem.');
       } finally {
@@ -3304,7 +3304,7 @@
       settings.pdfWatermarkEnabled = true;
       saveState();
       renderWatermarkSettings();
-      showToast('Marca d'água padrão Medeiros restaurada!');
+      showToast("Marca d'água padrão Medeiros restaurada!");
     }
 
     function renderSettingsView() {
