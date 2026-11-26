@@ -777,6 +777,35 @@
       margin-top: 2px;
     }
 
+
+    .km-diff-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 13px;
+      padding: 10px 13px;
+      border-radius: var(--radius-md);
+      background: var(--success-bg);
+      border: 1px solid #A7F3D0;
+      color: var(--success);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+    .km-diff-banner.show { display: flex; }
+    .km-diff-banner.warn {
+      background: var(--warn-bg);
+      border-color: #FDE68A;
+      color: #B45309;
+    }
+    .km-diff-banner small {
+      display: block;
+      font-weight: 500;
+      font-size: 0.74rem;
+      opacity: 0.9;
+      margin-top: 1px;
+    }
+
     .lightbox-img {
       width: 100%;
       max-height: 70dvh;
@@ -966,14 +995,38 @@
           </div>
 
           <div class="field">
-            <label for="inpFinalKm">KM Final (digitar e/ou foto do painel)</label>
+            <label for="inpStartKm">KM Inicial (saída — digitar e/ou foto do painel)</label>
+            <div class="input-photo-row">
+              <input id="inpStartKm" type="text" inputmode="numeric" placeholder="Ex.: 148300" oninput="updateTripField('startKm', this.value)" />
+              <button type="button" class="btn-cam" onclick="document.getElementById('fileStartKmCam').click()" title="Tirar foto do painel (KM inicial)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Foto
+              </button>
+              <button type="button" class="btn-cam btn-cam-gal" onclick="document.getElementById('fileStartKmGal').click()" title="Escolher foto do KM inicial na galeria">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+            </div>
+            <input id="fileStartKmCam" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload('startKmPhoto', this)" />
+            <input id="fileStartKmGal" type="file" accept="image/*" style="display:none;" onchange="handlePhotoUpload('startKmPhoto', this)" />
+            <div id="previewStartKmPhoto" class="photo-preview-card">
+              <img id="imgStartKmPhoto" class="photo-thumb" alt="Foto do KM inicial no painel" onclick="openLightbox('startKmPhoto')" />
+              <div class="photo-preview-info">
+                <strong>Foto do KM Inicial anexada</strong>
+                <small id="metaStartKmPhoto">Toque na imagem para ampliar</small>
+              </div>
+              <button type="button" class="btn btn-danger-soft btn-sm" onclick="removeTripPhoto('startKmPhoto')">Remover</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="inpFinalKm">KM Final (chegada — digitar e/ou foto do painel)</label>
             <div class="input-photo-row">
               <input id="inpFinalKm" type="text" inputmode="numeric" placeholder="Ex.: 148520" oninput="updateTripField('finalKm', this.value)" />
               <button type="button" class="btn-cam" onclick="document.getElementById('fileKmCam').click()" title="Tirar foto do painel (KM final)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                 Foto
               </button>
-              <button type="button" class="btn-cam btn-cam-gal" onclick="document.getElementById('fileKmGal').click()" title="Escolher foto do KM na galeria">
+              <button type="button" class="btn-cam btn-cam-gal" onclick="document.getElementById('fileKmGal').click()" title="Escolher foto do KM final na galeria">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               </button>
             </div>
@@ -989,12 +1042,20 @@
             </div>
           </div>
 
+          <div id="kmDiffBanner" class="km-diff-banner">
+            <div>
+              <span id="kmDiffTitle">KM Rodado no Dia</span>
+              <small id="kmDiffSub"></small>
+            </div>
+            <span id="kmDiffValue" style="font-size:1.05rem; white-space:nowrap;"></span>
+          </div>
+
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
             <button type="button" class="btn btn-pdf btn-sm" style="flex:1;" onclick="downloadRoutePDF()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
               Baixar PDF com estes dados
             </button>
-            <button type="button" class="btn btn-outline btn-sm" onclick="clearDailyKm()">Limpar KM</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearDailyKm()">Limpar KMs</button>
           </div>
         </div>
       </div>
@@ -1236,8 +1297,10 @@
     const DEFAULT_TRIP = {
       driverName: '',
       vehiclePlate: '',
+      startKm: '',
       finalKm: '',
       platePhoto: null,
+      startKmPhoto: null,
       kmPhoto: null
     };
 
@@ -1633,7 +1696,10 @@
       let text = `🚛 *Transporte Medeiros - Rota do Dia* (${today})\n`;
       if (tripData.driverName) text += `👤 *Motorista:* ${tripData.driverName}\n`;
       if (tripData.vehiclePlate) text += `🚚 *Placa:* ${tripData.vehiclePlate}\n`;
-      if (tripData.finalKm) text += `📟 *KM Final:* ${formatKmDisplay(tripData.finalKm)}\n`;
+      if (tripData.startKm) text += `🟢 *KM Inicial:* ${formatKmDisplay(tripData.startKm)}\n`;
+      if (tripData.finalKm) text += `🏁 *KM Final:* ${formatKmDisplay(tripData.finalKm)}\n`;
+      const waKmDiff = getKmDriven();
+      if (waKmDiff.valid) text += `📏 *KM Rodado no Dia:* ${waKmDiff.diff.toLocaleString('pt-BR')} km\n`;
       text += `📍 *Partida:* ${settings.baseName}\n`;
       if (routeMeta.distKm != null) {
         text += `🛣️ *Estimativa:* ${routeMeta.distKm} km • ${formatDuration(routeMeta.durationMin)}\n`;
@@ -1895,8 +1961,9 @@
           y += rowH;
         });
 
-        // Conference / Driver / Vehicle / KM block
-        if (y + 28 > pageH - 16) {
+        // Conference / Driver / Vehicle / KM Inicial / KM Final / KM Rodado block
+        const confBoxH = 36;
+        if (y + confBoxH + 8 > pageH - 16) {
           doc.addPage();
           drawPageHeader(false);
           y = 26;
@@ -1906,71 +1973,115 @@
 
         const driverVal = (tripData.driverName || '').trim();
         const plateVal = (tripData.vehiclePlate || '').trim();
-        const kmVal = (tripData.finalKm || '').trim();
+        const startKmVal = (tripData.startKm || '').trim();
+        const finalKmVal = (tripData.finalKm || '').trim();
+        const kmDiffInfo = getKmDriven();
 
         doc.setFillColor(248, 250, 252);
         doc.setDrawColor(226, 232, 240);
-        doc.roundedRect(margin, y, contentW, 22, 2.5, 2.5, 'FD');
+        doc.roundedRect(margin, y, contentW, confBoxH, 2.5, 2.5, 'FD');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
         doc.setTextColor(29, 78, 216);
         doc.text('CONFERÊNCIA DA VIAGEM', margin + 4, y + 5.5);
 
-        const col1X = margin + 4;
-        const col2X = margin + 78;
-        const col3X = margin + 134;
+        // Row 1: Motorista | Placa do Veículo
+        const r1Col1 = margin + 4;
+        const r1Col2 = margin + 114;
 
-        // Labels
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7);
         doc.setTextColor(100, 116, 139);
-        doc.text('MOTORISTA', col1X, y + 11.2);
-        doc.text('PLACA DO VEÍCULO', col2X, y + 11.2);
-        doc.text('KM FINAL', col3X, y + 11.2);
+        doc.text('MOTORISTA', r1Col1, y + 11.2);
+        doc.text('PLACA DO VEÍCULO', r1Col2, y + 11.2);
 
-        // Values
         doc.setFontSize(9.2);
         if (driverVal) {
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(15, 23, 42);
-          doc.text(doc.splitTextToSize(driverVal, 68)[0], col1X, y + 17.5);
+          doc.text(doc.splitTextToSize(driverVal, 102)[0], r1Col1, y + 16.8);
         } else {
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(148, 163, 184);
-          doc.text('____________________________', col1X, y + 17.5);
+          doc.text('________________________________________', r1Col1, y + 16.8);
         }
 
         if (plateVal) {
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(15, 23, 42);
-          doc.text(plateVal, col2X, y + 17.5);
+          doc.text(plateVal, r1Col2, y + 16.8);
         } else if (tripData.platePhoto) {
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(29, 78, 216);
-          doc.text('Ver foto abaixo', col2X, y + 17.5);
+          doc.text('Ver foto abaixo', r1Col2, y + 16.8);
         } else {
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(148, 163, 184);
-          doc.text('____________________', col2X, y + 17.5);
+          doc.text('__________________________', r1Col2, y + 16.8);
         }
 
-        if (kmVal) {
+        // Subtle divider between Row 1 and Row 2
+        doc.setDrawColor(226, 232, 240);
+        doc.line(margin + 4, y + 20, margin + contentW - 4, y + 20);
+
+        // Row 2: KM Inicial | KM Final | KM Rodado no Dia
+        const r2Col1 = margin + 4;
+        const r2Col2 = margin + 64;
+        const r2Col3 = margin + 124;
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(100, 116, 139);
+        doc.text('KM INICIAL (SAÍDA)', r2Col1, y + 25.2);
+        doc.text('KM FINAL (CHEGADA)', r2Col2, y + 25.2);
+        doc.text('KM RODADO NO DIA', r2Col3, y + 25.2);
+
+        doc.setFontSize(9.2);
+        if (startKmVal) {
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(15, 23, 42);
-          doc.text(formatKmDisplay(kmVal), col3X, y + 17.5);
+          doc.text(formatKmDisplay(startKmVal), r2Col1, y + 31.4);
+        } else if (tripData.startKmPhoto) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(29, 78, 216);
+          doc.text('Ver foto abaixo', r2Col1, y + 31.4);
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(148, 163, 184);
+          doc.text('____________________', r2Col1, y + 31.4);
+        }
+
+        if (finalKmVal) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(15, 23, 42);
+          doc.text(formatKmDisplay(finalKmVal), r2Col2, y + 31.4);
         } else if (tripData.kmPhoto) {
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(29, 78, 216);
-          doc.text('Ver foto abaixo', col3X, y + 17.5);
+          doc.text('Ver foto abaixo', r2Col2, y + 31.4);
         } else {
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(148, 163, 184);
-          doc.text('________________', col3X, y + 17.5);
+          doc.text('____________________', r2Col2, y + 31.4);
         }
 
-        y += 22;
+        if (kmDiffInfo.valid) {
+          doc.setFillColor(236, 253, 245);
+          doc.setDrawColor(167, 243, 208);
+          doc.roundedRect(r2Col3 - 1, y + 26.8, 52, 6.8, 1.8, 1.8, 'FD');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9.4);
+          doc.setTextColor(5, 150, 105);
+          doc.text(`${kmDiffInfo.diff.toLocaleString('pt-BR')} km`, r2Col3 + 25, y + 31.5, { align: 'center' });
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(148, 163, 184);
+          doc.text('____________________', r2Col3, y + 31.4);
+        }
 
-        // Embedded Photos Section (Plate & Final KM)
+        y += confBoxH;
+
+        // Embedded Photos Section (Plate, Initial KM & Final KM) - 2-column grid for sharp legibility
         const photoCards = [];
         if (tripData.platePhoto && tripData.platePhoto.dataUrl) {
           photoCards.push({
@@ -1979,18 +2090,27 @@
             photo: tripData.platePhoto
           });
         }
+        if (tripData.startKmPhoto && tripData.startKmPhoto.dataUrl) {
+          photoCards.push({
+            title: 'FOTO DO KM INICIAL (SAÍDA)',
+            subtitle: startKmVal ? `KM saída: ${formatKmDisplay(startKmVal)}` : 'Registro fotográfico do painel',
+            photo: tripData.startKmPhoto
+          });
+        }
         if (tripData.kmPhoto && tripData.kmPhoto.dataUrl) {
           photoCards.push({
-            title: 'FOTO DO KM FINAL (PAINEL)',
-            subtitle: kmVal ? `KM informado: ${formatKmDisplay(kmVal)}` : 'Registro fotográfico do painel',
+            title: 'FOTO DO KM FINAL (CHEGADA)',
+            subtitle: finalKmVal ? `KM chegada: ${formatKmDisplay(finalKmVal)}` : 'Registro fotográfico do painel',
             photo: tripData.kmPhoto
           });
         }
 
         if (photoCards.length > 0) {
-          const cardH = 68;
-          const sectionNeeded = cardH + 14;
-          if (y + sectionNeeded > pageH - 16) {
+          const cardH = 64;
+          const gap = 6;
+          const rowGap = 6;
+
+          if (y + cardH + 14 > pageH - 16) {
             doc.addPage();
             drawPageHeader(false);
             y = 26;
@@ -2004,53 +2124,62 @@
           doc.text('Comprovantes Fotográficos', margin, y);
           y += 4;
 
-          const gap = 6;
-          const cardW = photoCards.length === 2 ? (contentW - gap) / 2 : 108;
+          for (let r = 0; r < photoCards.length; r += 2) {
+            const rowItems = photoCards.slice(r, r + 2);
+            if (r > 0) {
+              if (y + rowGap + cardH > pageH - 16) {
+                doc.addPage();
+                drawPageHeader(false);
+                y = 26;
+              } else {
+                y += rowGap;
+              }
+            }
 
-          photoCards.forEach((item, idx) => {
-            const cx = margin + idx * (cardW + gap);
-            doc.setFillColor(255, 255, 255);
-            doc.setDrawColor(203, 213, 225);
-            doc.roundedRect(cx, y, cardW, cardH, 2.5, 2.5, 'FD');
+            const cardW = rowItems.length === 2 ? (contentW - gap) / 2 : 108;
 
-            // Top mini bar inside card
-            doc.setFillColor(239, 246, 255);
-            doc.roundedRect(cx + 0.4, y + 0.4, cardW - 0.8, 11.5, 2, 2, 'F');
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(7.4);
-            doc.setTextColor(29, 78, 216);
-            doc.text(item.title, cx + 3.5, y + 5.2);
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(7.4);
-            doc.setTextColor(51, 65, 85);
-            doc.text(doc.splitTextToSize(item.subtitle, cardW - 7)[0], cx + 3.5, y + 9.8);
+            rowItems.forEach((item, colIdx) => {
+              const cx = margin + colIdx * (cardW + gap);
+              doc.setFillColor(255, 255, 255);
+              doc.setDrawColor(203, 213, 225);
+              doc.roundedRect(cx, y, cardW, cardH, 2.5, 2.5, 'FD');
 
-            // Fit image preserving aspect ratio
-            const boxX = cx + 3.5;
-            const boxY = y + 14;
-            const boxW = cardW - 7;
-            const boxH = cardH - 22;
-            const iw = item.photo.width || 4;
-            const ih = item.photo.height || 3;
-            const scale = Math.min(boxW / iw, boxH / ih);
-            const drawW = iw * scale;
-            const drawH = ih * scale;
-            const drawX = boxX + (boxW - drawW) / 2;
-            const drawY = boxY + (boxH - drawH) / 2;
+              doc.setFillColor(239, 246, 255);
+              doc.roundedRect(cx + 0.4, y + 0.4, cardW - 0.8, 11.5, 2, 2, 'F');
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(7.4);
+              doc.setTextColor(29, 78, 216);
+              doc.text(item.title, cx + 3.5, y + 5.2);
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(7.4);
+              doc.setTextColor(51, 65, 85);
+              doc.text(doc.splitTextToSize(item.subtitle, cardW - 7)[0], cx + 3.5, y + 9.8);
 
-            doc.setFillColor(248, 250, 252);
-            doc.rect(boxX, boxY, boxW, boxH, 'F');
-            doc.addImage(item.photo.dataUrl, 'JPEG', drawX, drawY, drawW, drawH, undefined, 'FAST');
+              const boxX = cx + 3.5;
+              const boxY = y + 14;
+              const boxW = cardW - 7;
+              const boxH = cardH - 22;
+              const iw = item.photo.width || 4;
+              const ih = item.photo.height || 3;
+              const scale = Math.min(boxW / iw, boxH / ih);
+              const drawW = iw * scale;
+              const drawH = ih * scale;
+              const drawX = boxX + (boxW - drawW) / 2;
+              const drawY = boxY + (boxH - drawH) / 2;
 
-            // Timestamp footer inside card
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(6.8);
-            doc.setTextColor(100, 116, 139);
-            const capTime = item.photo.capturedAt ? `Anexada às ${item.photo.capturedAt}` : 'Foto anexada';
-            doc.text(capTime, cx + cardW / 2, y + cardH - 2.6, { align: 'center' });
-          });
+              doc.setFillColor(248, 250, 252);
+              doc.rect(boxX, boxY, boxW, boxH, 'F');
+              doc.addImage(item.photo.dataUrl, 'JPEG', drawX, drawY, drawW, drawH, undefined, 'FAST');
 
-          y += cardH;
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(6.8);
+              doc.setTextColor(100, 116, 139);
+              const capTime = item.photo.capturedAt ? `Anexada às ${item.photo.capturedAt}` : 'Foto anexada';
+              doc.text(capTime, cx + cardW / 2, y + cardH - 2.6, { align: 'center' });
+            });
+
+            y += cardH;
+          }
         }
 
         // Footer on every page
@@ -2110,13 +2239,18 @@
         <div class="meta" style="margin-top:16px;">
           <div class="box"><strong>Motorista:</strong><br>${escapeHtml(tripData.driverName || '_______________________')}</div>
           <div class="box"><strong>Placa do Veículo:</strong><br>${escapeHtml(tripData.vehiclePlate || (tripData.platePhoto ? 'Ver foto abaixo' : '_______________'))}</div>
-          <div class="box"><strong>KM Final:</strong><br>${escapeHtml(tripData.finalKm ? formatKmDisplay(tripData.finalKm) : (tripData.kmPhoto ? 'Ver foto abaixo' : '_____________'))}</div>
         </div>
-        ${(tripData.platePhoto || tripData.kmPhoto) ? `
+        <div class="meta" style="margin-top:8px;">
+          <div class="box"><strong>KM Inicial:</strong><br>${escapeHtml(tripData.startKm ? formatKmDisplay(tripData.startKm) : (tripData.startKmPhoto ? 'Ver foto abaixo' : '_____________'))}</div>
+          <div class="box"><strong>KM Final:</strong><br>${escapeHtml(tripData.finalKm ? formatKmDisplay(tripData.finalKm) : (tripData.kmPhoto ? 'Ver foto abaixo' : '_____________'))}</div>
+          <div class="box" style="background:#ECFDF5;border-color:#A7F3D0;"><strong>KM Rodado no Dia:</strong><br><span style="color:#059669;font-weight:700;">${getKmDriven().valid ? getKmDriven().diff.toLocaleString('pt-BR') + ' km' : '_____________'}</span></div>
+        </div>
+        ${(tripData.platePhoto || tripData.startKmPhoto || tripData.kmPhoto) ? `
           <h3 style="margin:18px 0 8px;color:#1E3A8A;">Comprovantes Fotográficos</h3>
-          <div style="display:flex;gap:14px;flex-wrap:wrap;">
-            ${tripData.platePhoto ? `<div style="flex:1;min-width:220px;border:1px solid #CBD5E1;border-radius:10px;padding:10px;text-align:center;"><div style="font-weight:700;font-size:12px;color:#1D4ED8;margin-bottom:6px;">FOTO DA PLACA${tripData.vehiclePlate ? ' — ' + escapeHtml(tripData.vehiclePlate) : ''}</div><img src="${tripData.platePhoto.dataUrl}" style="max-width:100%;max-height:220px;border-radius:6px;" /><div style="font-size:11px;color:#64748B;margin-top:4px;">Anexada às ${escapeHtml(tripData.platePhoto.capturedAt || '')}</div></div>` : ''}
-            ${tripData.kmPhoto ? `<div style="flex:1;min-width:220px;border:1px solid #CBD5E1;border-radius:10px;padding:10px;text-align:center;"><div style="font-weight:700;font-size:12px;color:#1D4ED8;margin-bottom:6px;">FOTO DO KM FINAL${tripData.finalKm ? ' — ' + escapeHtml(formatKmDisplay(tripData.finalKm)) : ''}</div><img src="${tripData.kmPhoto.dataUrl}" style="max-width:100%;max-height:220px;border-radius:6px;" /><div style="font-size:11px;color:#64748B;margin-top:4px;">Anexada às ${escapeHtml(tripData.kmPhoto.capturedAt || '')}</div></div>` : ''}
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+            ${tripData.platePhoto ? `<div style="border:1px solid #CBD5E1;border-radius:10px;padding:10px;text-align:center;"><div style="font-weight:700;font-size:12px;color:#1D4ED8;margin-bottom:6px;">FOTO DA PLACA${tripData.vehiclePlate ? ' — ' + escapeHtml(tripData.vehiclePlate) : ''}</div><img src="${tripData.platePhoto.dataUrl}" style="max-width:100%;max-height:220px;border-radius:6px;" /><div style="font-size:11px;color:#64748B;margin-top:4px;">Anexada às ${escapeHtml(tripData.platePhoto.capturedAt || '')}</div></div>` : ''}
+            ${tripData.startKmPhoto ? `<div style="border:1px solid #CBD5E1;border-radius:10px;padding:10px;text-align:center;"><div style="font-weight:700;font-size:12px;color:#1D4ED8;margin-bottom:6px;">FOTO DO KM INICIAL${tripData.startKm ? ' — ' + escapeHtml(formatKmDisplay(tripData.startKm)) : ''}</div><img src="${tripData.startKmPhoto.dataUrl}" style="max-width:100%;max-height:220px;border-radius:6px;" /><div style="font-size:11px;color:#64748B;margin-top:4px;">Anexada às ${escapeHtml(tripData.startKmPhoto.capturedAt || '')}</div></div>` : ''}
+            ${tripData.kmPhoto ? `<div style="border:1px solid #CBD5E1;border-radius:10px;padding:10px;text-align:center;"><div style="font-weight:700;font-size:12px;color:#1D4ED8;margin-bottom:6px;">FOTO DO KM FINAL${tripData.finalKm ? ' — ' + escapeHtml(formatKmDisplay(tripData.finalKm)) : ''}</div><img src="${tripData.kmPhoto.dataUrl}" style="max-width:100%;max-height:220px;border-radius:6px;" /><div style="font-size:11px;color:#64748B;margin-top:4px;">Anexada às ${escapeHtml(tripData.kmPhoto.capturedAt || '')}</div></div>` : ''}
           </div>
         ` : ''}
         <script>window.onload=function(){window.print();};<\/script>
@@ -2152,15 +2286,50 @@
 
 
     /* ========= TRIP DATA (DRIVER, PLATE, KM + PHOTOS) ========= */
+    function parseKmNumber(val) {
+      const str = String(val || '').trim().replace(/km$/i, '').trim();
+      if (!str) return null;
+      const digits = str.replace(/[.,\s]/g, '');
+      if (!/^\d+$/.test(digits)) return null;
+      return Number(digits);
+    }
+
+    function getKmDriven() {
+      const start = parseKmNumber(tripData.startKm);
+      const end = parseKmNumber(tripData.finalKm);
+      if (start === null || end === null) return { valid: false, invalidOrder: false, diff: null, start, end };
+      const diff = end - start;
+      if (diff < 0) return { valid: false, invalidOrder: true, diff, start, end };
+      return { valid: true, invalidOrder: false, diff, start, end };
+    }
+
     function formatKmDisplay(val) {
       const str = String(val || '').trim();
       if (!str) return '';
       if (/km$/i.test(str)) return str;
-      const digits = str.replace(/\D/g, '');
-      if (digits && digits === str.replace(/[.,\s]/g, '')) {
-        return `${Number(digits).toLocaleString('pt-BR')} km`;
-      }
+      const num = parseKmNumber(str);
+      if (num !== null) return `${num.toLocaleString('pt-BR')} km`;
       return `${str} km`;
+    }
+
+    function renderKmDiffBanner() {
+      const banner = document.getElementById('kmDiffBanner');
+      if (!banner) return;
+      const info = getKmDriven();
+      if (info.valid) {
+        banner.classList.add('show');
+        banner.classList.remove('warn');
+        document.getElementById('kmDiffTitle').textContent = 'Quilometragem Real Rodada';
+        document.getElementById('kmDiffSub').textContent = `${info.start.toLocaleString('pt-BR')} km → ${info.end.toLocaleString('pt-BR')} km`;
+        document.getElementById('kmDiffValue').textContent = `${info.diff.toLocaleString('pt-BR')} km`;
+      } else if (info.invalidOrder) {
+        banner.classList.add('show', 'warn');
+        document.getElementById('kmDiffTitle').textContent = 'Verifique a quilometragem';
+        document.getElementById('kmDiffSub').textContent = 'O KM Final está menor que o KM Inicial.';
+        document.getElementById('kmDiffValue').textContent = '⚠';
+      } else {
+        banner.classList.remove('show', 'warn');
+      }
     }
 
     function toggleTripPanel() {
@@ -2171,6 +2340,7 @@
     function updateTripField(field, value) {
       tripData[field] = value;
       saveState();
+      renderKmDiffBanner();
       renderTripSummaryChips();
     }
 
@@ -2231,7 +2401,12 @@
         tripData[photoKey] = compressed;
         saveState();
         renderTripPanel();
-        showToast(photoKey === 'platePhoto' ? 'Foto da placa anexada!' : 'Foto do KM final anexada!');
+        const toastMap = {
+          platePhoto: 'Foto da placa anexada!',
+          startKmPhoto: 'Foto do KM inicial anexada!',
+          kmPhoto: 'Foto do KM final anexada!'
+        };
+        showToast(toastMap[photoKey] || 'Foto anexada!');
       } catch (err) {
         showToast('Não foi possível processar esta foto. Tente novamente.');
       } finally {
@@ -2247,22 +2422,29 @@
     }
 
     function clearDailyKm() {
+      tripData.startKm = '';
       tripData.finalKm = '';
+      tripData.startKmPhoto = null;
       tripData.kmPhoto = null;
       saveState();
       renderTripPanel();
-      showToast('KM final e foto do painel limpos.');
+      showToast('KM inicial, KM final e fotos do painel limpos.');
     }
 
     function openLightbox(photoKey) {
       const photo = tripData[photoKey];
       if (!photo || !photo.dataUrl) return;
-      document.getElementById('lightboxTitle').textContent =
-        photoKey === 'platePhoto' ? 'Foto da Placa do Veículo' : 'Foto do KM Final (Painel)';
+      const titles = {
+        platePhoto: 'Foto da Placa do Veículo',
+        startKmPhoto: 'Foto do KM Inicial (Saída)',
+        kmPhoto: 'Foto do KM Final (Chegada)'
+      };
+      document.getElementById('lightboxTitle').textContent = titles[photoKey] || 'Visualizar Foto';
       document.getElementById('lightboxImg').src = photo.dataUrl;
-      const val = photoKey === 'platePhoto'
-        ? (tripData.vehiclePlate ? `Placa: ${tripData.vehiclePlate} • ` : '')
-        : (tripData.finalKm ? `KM: ${formatKmDisplay(tripData.finalKm)} • ` : '');
+      let val = '';
+      if (photoKey === 'platePhoto' && tripData.vehiclePlate) val = `Placa: ${tripData.vehiclePlate} • `;
+      if (photoKey === 'startKmPhoto' && tripData.startKm) val = `KM Inicial: ${formatKmDisplay(tripData.startKm)} • `;
+      if (photoKey === 'kmPhoto' && tripData.finalKm) val = `KM Final: ${formatKmDisplay(tripData.finalKm)} • `;
       document.getElementById('lightboxCaption').textContent = `${val}Anexada às ${photo.capturedAt || '--'}`;
       document.getElementById('lightboxModal').classList.add('open');
     }
@@ -2281,17 +2463,28 @@
       if (tripData.vehiclePlate && tripData.vehiclePlate.trim()) {
         parts.push(`<span class="chip">🚚 ${escapeHtml(tripData.vehiclePlate.trim())}</span>`);
       }
-      if (tripData.finalKm && tripData.finalKm.trim()) {
-        parts.push(`<span class="chip">📟 ${escapeHtml(formatKmDisplay(tripData.finalKm))}</span>`);
+      const kmInfo = getKmDriven();
+      if (kmInfo.valid) {
+        parts.push(`<span class="chip chip-ok">📏 ${kmInfo.diff.toLocaleString('pt-BR')} km rodados</span>`);
+      } else {
+        if (tripData.startKm && tripData.startKm.trim()) {
+          parts.push(`<span class="chip">🟢 Ini: ${escapeHtml(formatKmDisplay(tripData.startKm))}</span>`);
+        }
+        if (tripData.finalKm && tripData.finalKm.trim()) {
+          parts.push(`<span class="chip">🏁 Fim: ${escapeHtml(formatKmDisplay(tripData.finalKm))}</span>`);
+        }
       }
       if (tripData.platePhoto) {
-        parts.push(`<span class="chip chip-ok">📷 Foto Placa</span>`);
+        parts.push(`<span class="chip chip-ok">📷 Placa</span>`);
+      }
+      if (tripData.startKmPhoto) {
+        parts.push(`<span class="chip chip-ok">📷 KM Ini</span>`);
       }
       if (tripData.kmPhoto) {
-        parts.push(`<span class="chip chip-ok">📷 Foto KM</span>`);
+        parts.push(`<span class="chip chip-ok">📷 KM Fim</span>`);
       }
       if (parts.length === 0) {
-        parts.push(`<span class="chip" style="background:#F1F5F9;color:#64748B;border-color:#E2E8F0;">Motorista, Placa e KM (opcional)</span>`);
+        parts.push(`<span class="chip" style="background:#F1F5F9;color:#64748B;border-color:#E2E8F0;">Motorista, Placa e KM Inicial/Final</span>`);
       }
       chipsEl.innerHTML = parts.join('');
     }
@@ -2305,9 +2498,11 @@
 
       const inpDriver = document.getElementById('inpDriverName');
       const inpPlate = document.getElementById('inpVehiclePlate');
+      const inpStartKm = document.getElementById('inpStartKm');
       const inpKm = document.getElementById('inpFinalKm');
       if (document.activeElement !== inpDriver) inpDriver.value = tripData.driverName || '';
       if (document.activeElement !== inpPlate) inpPlate.value = tripData.vehiclePlate || '';
+      if (document.activeElement !== inpStartKm) inpStartKm.value = tripData.startKm || '';
       if (document.activeElement !== inpKm) inpKm.value = tripData.finalKm || '';
 
       // Plate photo preview
@@ -2320,7 +2515,17 @@
         plateCard.classList.remove('has-photo');
       }
 
-      // KM photo preview
+      // Start KM photo preview
+      const startKmCard = document.getElementById('previewStartKmPhoto');
+      if (tripData.startKmPhoto && tripData.startKmPhoto.dataUrl) {
+        startKmCard.classList.add('has-photo');
+        document.getElementById('imgStartKmPhoto').src = tripData.startKmPhoto.dataUrl;
+        document.getElementById('metaStartKmPhoto').textContent = `Anexada às ${tripData.startKmPhoto.capturedAt || '--'} • Toque para ampliar`;
+      } else {
+        startKmCard.classList.remove('has-photo');
+      }
+
+      // Final KM photo preview
       const kmCard = document.getElementById('previewKmPhoto');
       if (tripData.kmPhoto && tripData.kmPhoto.dataUrl) {
         kmCard.classList.add('has-photo');
@@ -2330,6 +2535,7 @@
         kmCard.classList.remove('has-photo');
       }
 
+      renderKmDiffBanner();
       renderTripSummaryChips();
     }
 
@@ -2486,11 +2692,13 @@
     }
 
     function clearAllStops() {
-      if (!confirm('Zerar todas as paradas e o KM final da rota de hoje?')) return;
+      if (!confirm('Zerar todas as paradas e os KMs (inicial/final) da rota de hoje?')) return;
       stops = [];
       isOptimized = false;
       routeMeta = { distKm: null, durationMin: null, method: '' };
+      tripData.startKm = '';
       tripData.finalKm = '';
+      tripData.startKmPhoto = null;
       tripData.kmPhoto = null;
       saveState();
       renderRouteView();
