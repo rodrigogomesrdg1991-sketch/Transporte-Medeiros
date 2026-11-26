@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Transporte Medeiros — Otimizador de Rotas</title>
+  <meta name="description" content="Otimizador de rotas e entregas da Transporte Medeiros com cálculo de trajeto mais rápido e abertura direta no Google Maps." />
+  <meta name="theme-color" content="#1D4ED8" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Medeiros" />
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+
+  <style>
+    :root {
+      --blue-950: #0F172A;
+      --blue-900: #1E3A8A;
+      --blue-700: #1D4ED8;
+      --blue-600: #2563EB;
+      --blue-500: #3B82F6;
+      --blue-100: #DBEAFE;
+      --blue-50:  #EFF6FF;
+      --bg:       #F8FAFC;
+      --surface:  #FFFFFF;
+      --border:   #E2E8F0;
+      --text:     #0F172A;
+      --muted:    #64748B;
+      --success:  #059669;
+      --success-bg: #ECFDF5;
+      --warn:     #D97706;
+      --warn-bg:  #FFFBEB;
+      --danger:   #DC2626;
+      --danger-bg:#FEF2F2;
+      --whatsapp: #25D366;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 9px;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100dvh;
+      padding-bottom: calc(88px + var(--safe-bottom));
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: linear-gradient(135deg, var(--blue-900) 0%, var(--blue-700) 58%, var(--blue-600) 100%);
+      color: #fff;
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 14px;
+      box-shadow: 0 4px 18px rgba(29, 78, 216, 0.22);
+    }
+
+    .topbar-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.06rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-text p {
+      margin: 2px 0 0;
+      font-size: 0.74rem;
+      color: #DBEAFE;
+      font-weight: 500;
+    }
+
+    .desktop-nav {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.22);
+      padding: 4px;
+      border-radius: 999px;
+    }
+
+    .desktop-nav button {
+      border: 0;
+      background: transparent;
+      color: #DBEAFE;
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .desktop-nav button.active {
+      background: #fff;
+      color: var(--blue-700);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-install-header {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 7px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .btn-install-header.visible { display: inline-flex; }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .install-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--blue-50);
+      border: 1px solid var(--blue-100);
+      border-radius: var(--radius-md);
+      padding: 11px 14px;
+      margin-bottom: 14px;
+      color: var(--blue-900);
+    }
+    .install-banner.show { display: flex; }
+    .install-banner small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.76rem;
+      margin-top: 2px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 14px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--blue-950);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .origin-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--blue-50);
+      border: 1px solid var(--blue-100);
+      border-radius: var(--radius-md);
+      padding: 11px 13px;
+    }
+
+    .origin-info { min-width: 0; flex: 1; }
+    .origin-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--blue-700);
+    }
+    .origin-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--blue-950);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .stat-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+    }
+
+    .stat-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+    .stat-val {
+      font-size: 1.06rem;
+      font-weight: 800;
+      color: var(--blue-950);
+      margin-top: 2px;
+      letter-spacing: -0.02em;
+    }
+
+    .progress-wrap {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 7px;
+      background: var(--blue-100);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--blue-600), var(--success));
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 11px 15px;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.16s ease, box-shadow 0.16s ease;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, var(--blue-500), var(--blue-700)); }
+
+    .btn-secondary {
+      background: var(--blue-50);
+      color: var(--blue-700);
+      border-color: var(--blue-100);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-whatsapp {
+      background: var(--whatsapp);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+    }
+
+    .btn-danger-soft {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-color: #FECACA;
+    }
+
+    .btn-sm { padding: 7px 11px; font-size: 0.79rem; border-radius: var(--radius-sm); }
+
+    .btn-icon {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      display: inline-grid;
+      place-items: center;
+      cursor: pointer;
+    }
+    .btn-icon:hover { color: var(--blue-700); border-color: var(--blue-100); background: var(--blue-50); }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 12px;
+    }
+    .action-row .full { grid-column: 1 / -1; }
+
+    .opt-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--warn-bg);
+      color: var(--warn);
+    }
+    .opt-status.optimized {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .stop-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .stop-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--blue-600);
+      border-radius: var(--radius-md);
+      padding: 13px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.18s ease;
+    }
+
+    .stop-card.done {
+      opacity: 0.65;
+      border-left-color: var(--success);
+      background: #F8FAFC;
+    }
+    .stop-card.done .stop-name { text-decoration: line-through; color: var(--muted); }
+
+    .stop-top { display: flex; align-items: flex-start; gap: 11px; }
+
+    .stop-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--blue-600);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .stop-card.done .stop-badge { background: var(--success); }
+
+    .stop-main { flex: 1; min-width: 0; }
+    .stop-name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .stop-name { font-size: 0.94rem; font-weight: 700; color: var(--blue-950); }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--blue-50);
+      color: var(--blue-700);
+      border: 1px solid var(--blue-100);
+    }
+
+    .stop-address { font-size: 0.82rem; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+
+    .stop-leg {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--blue-700);
+      background: var(--blue-50);
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+
+    .stop-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 11px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+      flex-wrap: wrap;
+    }
+
+    .stop-actions-left, .stop-actions-right { display: flex; align-items: center; gap: 6px; }
+
+    .maps-batches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    .empty-state { text-align: center; padding: 32px 16px; color: var(--muted); }
+    .empty-state p { margin: 8px 0 14px; font-size: 0.88rem; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .search-input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--blue-600);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .client-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #fff;
+      margin-bottom: 9px;
+      cursor: pointer;
+    }
+    .client-item.selected { border-color: var(--blue-600); background: var(--blue-50); }
+    .client-check { width: 20px; height: 20px; accent-color: var(--blue-600); flex-shrink: 0; }
+
+    .city-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+    .city-chip {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .city-chip.selected {
+      background: var(--blue-600);
+      color: #fff;
+      border-color: var(--blue-600);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+
+    .field { margin-bottom: 13px; }
+    .field label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--blue-950); margin-bottom: 6px; }
+    .field input[type="text"], .field select, .field textarea {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.92rem;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--blue-600);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .checkbox-row input { width: 18px; height: 18px; accent-color: var(--blue-600); }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(15, 23, 42, 0.56);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 12px;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: 100%;
+      max-width: 540px;
+      max-height: 90dvh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 20px 48px rgba(15, 23, 42, 0.25);
+      animation: slideUp 0.2s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .modal-head h3 { margin: 0; font-size: 1.04rem; color: var(--blue-950); }
+
+    .tabs-pill {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .tabs-pill button {
+      border: 0;
+      background: transparent;
+      padding: 9px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--muted);
+      border-radius: 9px;
+      cursor: pointer;
+    }
+    .tabs-pill button.active { background: #fff; color: var(--blue-700); box-shadow: var(--shadow-sm); }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 45;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 6px 8px calc(8px + var(--safe-bottom));
+    }
+
+    .bottom-nav button {
+      border: 0;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 6px 4px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+    .bottom-nav button.active { color: var(--blue-600); background: var(--blue-50); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(84px + var(--safe-bottom));
+      transform: translateX(-50%) translateY(20px);
+      background: var(--blue-950);
+      color: #fff;
+      padding: 11px 16px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.28);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.22s ease;
+      z-index: 80;
+      max-width: 92vw;
+      text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2.5px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (min-width: 768px) {
+      body { padding-bottom: 36px; }
+      .desktop-nav { display: flex; }
+      .bottom-nav { display: none; }
+      .modal-backdrop { align-items: center; }
+      .action-row { grid-template-columns: repeat(3, 1fr); }
+      .action-row .full { grid-column: auto; }
+      .toast { bottom: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="14" height="12" rx="2"></rect>
+            <path d="M15 8h4l3 4v4h-7V8z"></path>
+            <circle cx="5.5" cy="18" r="2"></circle>
+            <circle cx="18.5" cy="18" r="2"></circle>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Transporte Medeiros</h1>
+          <p>Otimizador de Rotas</p>
+        </div>
+      </div>
+
+      <nav class="desktop-nav" aria-label="Navegação principal">
+        <button class="active" data-view="rota" onclick="switchView('rota')">Rota do Dia</button>
+        <button data-view="fixos" onclick="switchView('fixos')">Clientes Fixos</button>
+        <button data-view="config" onclick="switchView('config')">Configurações</button>
+      </nav>
+
+      <div class="header-actions">
+        <button id="btnInstallHeader" class="btn-install-header" onclick="triggerInstall()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Instalar App
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div id="installBanner" class="install-banner">
+      <div>
+        <strong style="font-size:0.86rem;">Instalar Transporte Medeiros</strong>
+        <small id="installBannerText">Acesse direto da tela inicial em tela cheia como aplicativo.</small>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button id="btnInstallBanner" class="btn btn-primary btn-sm" onclick="triggerInstall()">Instalar</button>
+        <button class="btn-icon" onclick="dismissInstallBanner()" aria-label="Fechar aviso">✕</button>
+      </div>
+    </div>
+
+    <section id="view-rota" class="view active">
+
+      <div class="card">
+        <div class="origin-box">
+          <div class="origin-info">
+            <div class="origin-label">Ponto de Partida</div>
+            <div id="originDisplay" class="origin-name">Base — Ribeirão Preto, SP</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="btn btn-secondary btn-sm" onclick="useCurrentGPS()" title="Usar minha localização GPS agora">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
+              GPS
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="switchView('config')">Alterar</button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">Paradas</div>
+            <div id="statStops" class="stat-val">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Distância Est.</div>
+            <div id="statDist" class="stat-val">-- km</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Tempo Estrada</div>
+            <div id="statTime" class="stat-val">--</div>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+          <div id="progressText" class="progress-text">0/0 concluídas</div>
+        </div>
+
+        <div class="action-row">
+          <button id="btnOptimize" class="btn btn-primary full" onclick="optimizeRoute()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Otimizar Rota Mais Rápida
+          </button>
+          <button class="btn btn-secondary" onclick="openAddModal('novo')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Parada
+          </button>
+          <button class="btn btn-whatsapp" onclick="shareWhatsApp()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            WhatsApp
+          </button>
+        </div>
+
+        <div id="fullMapsArea" style="margin-top:11px; display:none;">
+          <button id="btnFullMaps" class="btn btn-outline" style="width:100%; border-color:#93C5FD; color:#1D4ED8; background:#EFF6FF;" onclick="openFullRouteMaps(0)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            Abrir Rota Completa no Google Maps
+          </button>
+          <div id="mapsBatchContainer" class="maps-batches"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            Sequência de Entregas
+            <span id="optBadge" class="opt-status">Não otimizada</span>
+          </h2>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-outline btn-sm" onclick="clearDoneStops()">Limpar feitas</button>
+          </div>
+        </div>
+
+        <div id="routeMethodNote" style="display:none; font-size:0.75rem; color:var(--muted); margin:-4px 0 12px;"></div>
+        <div id="stopList" class="stop-list"></div>
+      </div>
+
+    </section>
+
+    <section id="view-fixos" class="view">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Clientes Fixos</h2>
+          <button class="btn btn-primary btn-sm" onclick="openClientModal()">+ Novo Fixo</button>
+        </div>
+
+        <input id="clientSearch" class="search-input" type="search" placeholder="Buscar por nome, cidade ou endereço..." oninput="renderClientsView()" />
+
+        <div id="bulkAddBar" style="display:none; margin-top:10px;">
+          <button class="btn btn-primary" style="width:100%;" onclick="addSelectedFixedToRoute()">
+            Adicionar <span id="selectedFixedCount">0</span> selecionado(s) à Rota do Dia
+          </button>
+        </div>
+
+        <div id="clientsList" style="margin-top:12px;"></div>
+      </div>
+    </section>
+
+    <section id="view-config" class="view">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Base da Transportadora</h2>
+        </div>
+
+        <div class="field">
+          <label for="cfgBaseName">Nome do Ponto de Partida</label>
+          <input id="cfgBaseName" type="text" placeholder="Ex.: Garagem Transporte Medeiros" />
+        </div>
+
+        <div class="field">
+          <label>Cidade da Base (toque rápido)</label>
+          <div id="cfgCityChips" class="city-chips"></div>
+        </div>
+
+        <div class="field">
+          <label for="cfgBaseAddress">Endereço Completo da Base (opcional)</label>
+          <input id="cfgBaseAddress" type="text" placeholder="Rua, número e bairro..." />
+        </div>
+
+        <label class="checkbox-row" style="margin-bottom:14px;">
+          <input id="cfgReturnBase" type="checkbox" />
+          Considerar retorno para a base no final da rota
+        </label>
+
+        <button class="btn btn-primary" style="width:100%;" onclick="saveSettings()">Salvar Configurações</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Dados e Manutenção</h2>
+        </div>
+        <p style="margin:0 0 12px; font-size:0.84rem; color:var(--muted);">
+          Todos os clientes fixos, rotas do dia e preferências ficam salvos localmente neste aparelho.
+        </p>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="loadDemoRoute()">Carregar Rota de Teste</button>
+          <button class="btn btn-danger-soft btn-sm" onclick="clearAllStops()">Zerar Rota do Dia</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav" aria-label="Menu inferior">
+    <button class="active" data-view="rota" onclick="switchView('rota')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+      Rota
+    </button>
+    <button data-view="fixos" onclick="switchView('fixos')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Fixos
+    </button>
+    <button data-view="config" onclick="switchView('config')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Ajustes
+    </button>
+  </nav>
+
+  <div id="addModal" class="modal-backdrop" onclick="if(event.target===this) closeAddModal()">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Adicionar Parada</h3>
+        <button class="btn-icon" onclick="closeAddModal()" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="tabs-pill">
+        <button id="tabNovo" class="active" onclick="switchModalTab('novo')">Endereço Novo</button>
+        <button id="tabFixos" onclick="switchModalTab('fixos')">Escolher dos Fixos</button>
+      </div>
+
+      <div id="modalTabNovo">
+        <div class="field">
+          <label>Cidade (toque rápido)</label>
+          <div id="modalCityChips" class="city-chips"></div>
+        </div>
+        <div class="field">
+          <label for="inpStopCity">Ou digite outra cidade</label>
+          <input id="inpStopCity" type="text" placeholder="Ex.: Taquaritinga" />
+        </div>
+        <div class="field">
+          <label for="inpStopName">Nome do Cliente / Local</label>
+          <input id="inpStopName" type="text" placeholder="Ex.: Depósito Central / Mercado Silva" />
+        </div>
+        <div class="field">
+          <label for="inpStopAddress">Rua, Número e Bairro (opcional)</label>
+          <input id="inpStopAddress" type="text" placeholder="Ex.: Av. Francisco Junqueira, 1200" />
+        </div>
+        <div class="field">
+          <label for="inpStopObs">Observação (opcional)</label>
+          <input id="inpStopObs" type="text" placeholder="Ex.: Descarregar até 15h / falar com João" />
+        </div>
+        <label class="checkbox-row" style="margin-bottom:14px;">
+          <input id="inpSaveFixed" type="checkbox" />
+          Salvar também nos Clientes Fixos
+        </label>
+        <button id="btnConfirmAddStop" class="btn btn-primary" style="width:100%;" onclick="addNewStop()">
+          Adicionar à Rota
+        </button>
+      </div>
+
+      <div id="modalTabFixos" style="display:none;">
+        <input id="modalFixedSearch" class="search-input" type="search" placeholder="Filtrar clientes fixos..." oninput="renderModalFixedList()" />
+        <div id="modalFixedList" style="margin-top:10px; max-height:42dvh; overflow-y:auto;"></div>
+        <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="confirmModalFixedSelection()">
+          Adicionar Selecionados
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="clientModal" class="modal-backdrop" onclick="if(event.target===this) closeClientModal()">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="clientModalTitle">Novo Cliente Fixo</h3>
+        <button class="btn-icon" onclick="closeClientModal()" aria-label="Fechar">✕</button>
+      </div>
+      <input type="hidden" id="editClientId" />
+      <div class="field">
+        <label>Cidade</label>
+        <div id="clientCityChips" class="city-chips"></div>
+      </div>
+      <div class="field">
+        <label for="cliCity">Cidade (texto)</label>
+        <input id="cliCity" type="text" placeholder="Ex.: Guariba" />
+      </div>
+      <div class="field">
+        <label for="cliName">Nome do Cliente</label>
+        <input id="cliName" type="text" placeholder="Ex.: Distribuidora São José" />
+      </div>
+      <div class="field">
+        <label for="cliAddress">Endereço</label>
+        <input id="cliAddress" type="text" placeholder="Rua, número e bairro" />
+      </div>
+      <div class="field">
+        <label for="cliObs">Observação padrão (opcional)</label>
+        <input id="cliObs" type="text" placeholder="Ex.: Entrada pela rua lateral" />
+      </div>
+      <button id="btnSaveClient" class="btn btn-primary" style="width:100%;" onclick="saveClient()">Salvar Cliente Fixo</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const CITIES = {
+      'Ribeirão Preto': { lat: -21.1775, lng: -47.8103, uf: 'SP' },
+      'Pradópolis':     { lat: -21.3600, lng: -48.0658, uf: 'SP' },
+      'Guariba':        { lat: -21.3603, lng: -48.2283, uf: 'SP' },
+      'Jaboticabal':    { lat: -21.2547, lng: -48.3222, uf: 'SP' },
+      'Monte Alto':     { lat: -21.2611, lng: -48.4964, uf: 'SP' },
+      'Taquaritinga':   { lat: -21.4056, lng: -48.5047, uf: 'SP' }
+    };
+    const CITY_LIST = Object.keys(CITIES);
+
+    const STORAGE_KEYS = {
+      stops: 'tm_stops_v1',
+      clients: 'tm_clients_v1',
+      settings: 'tm_settings_v1'
+    };
+
+    const DEFAULT_SETTINGS = {
+      baseName: 'Base — Ribeirão Preto',
+      baseCity: 'Ribeirão Preto',
+      baseAddress: 'Centro, Ribeirão Preto - SP',
+      baseLat: CITIES['Ribeirão Preto'].lat,
+      baseLng: CITIES['Ribeirão Preto'].lng,
+      useGps: false,
+      returnToBase: false
+    };
+
+    const DEFAULT_CLIENTS = [
+      { id: 'c1', name: 'Atacadão Taquaritinga', city: 'Taquaritinga', address: 'Av. Vicente José Parise, Centro', obs: 'Recebimento até 17h', lat: -21.4062, lng: -48.5055 },
+      { id: 'c2', name: 'Depósito Pradópolis', city: 'Pradópolis', address: 'Rua Sete de Setembro, Centro', obs: 'Portão lateral', lat: -21.3604, lng: -48.0650 },
+      { id: 'c3', name: 'Comercial Monte Alto', city: 'Monte Alto', address: 'Rua Nhonhô Livramento, Centro', obs: '', lat: -21.2615, lng: -48.4958 },
+      { id: 'c4', name: 'Distribuidora Guariba', city: 'Guariba', address: 'Av. Evaristo Vaz, Centro', obs: 'Ligar ao chegar', lat: -21.3609, lng: -48.2278 },
+      { id: 'c5', name: 'Mercado Jaboticabal', city: 'Jaboticabal', address: 'Av. Pintos, Centro', obs: 'Doca 2', lat: -21.2552, lng: -48.3216 }
+    ];
+
+    let settings = loadJSON(STORAGE_KEYS.settings, DEFAULT_SETTINGS);
+    let clients = loadJSON(STORAGE_KEYS.clients, DEFAULT_CLIENTS);
+    let stops = loadJSON(STORAGE_KEYS.stops, null);
+    let isOptimized = false;
+    let routeMeta = { distKm: null, durationMin: null, method: '' };
+    let selectedFixedIds = new Set();
+    let modalSelectedFixedIds = new Set();
+    let deferredPrompt = null;
+
+    if (!stops) {
+      stops = DEFAULT_CLIENTS.map(c => ({
+        id: 's_' + c.id,
+        clientId: c.id,
+        name: c.name,
+        city: c.city,
+        address: c.address,
+        obs: c.obs,
+        lat: c.lat,
+        lng: c.lng,
+        done: false,
+        legKm: null,
+        legMin: null
+      }));
+      saveState();
+    }
+
+    function loadJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(fallback));
+      } catch {
+        return JSON.parse(JSON.stringify(fallback));
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEYS.stops, JSON.stringify(stops));
+      localStorage.setItem(STORAGE_KEYS.clients, JSON.stringify(clients));
+      localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    function switchView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + name).classList.add('active');
+      document.querySelectorAll('[data-view]').forEach(b => {
+        b.classList.toggle('active', b.dataset.view === name);
+      });
+      if (name === 'fixos') renderClientsView();
+      if (name === 'config') renderSettingsView();
+      if (name === 'rota') renderRouteView();
+    }
+
+    function haversineKm(lat1, lng1, lat2, lng2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    async function geocodeAddress(address, city) {
+      const cleanCity = (city || '').trim();
+      const query = address && address.trim()
+        ? `${address.trim()}, ${cleanCity}, São Paulo, Brasil`
+        : `${cleanCity}, São Paulo, Brasil`;
+
+      try {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 5000);
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(query)}`;
+        const res = await fetch(url, { signal: controller.signal, headers: { 'Accept-Language': 'pt-BR' } });
+        clearTimeout(tid);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+          }
+        }
+      } catch (e) {}
+
+      if (CITIES[cleanCity]) {
+        return { lat: CITIES[cleanCity].lat, lng: CITIES[cleanCity].lng };
+      }
+      const norm = cleanCity.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      for (const cName of CITY_LIST) {
+        const cn = cName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (cn === norm || cn.includes(norm) || norm.includes(cn)) {
+          return { lat: CITIES[cName].lat, lng: CITIES[cName].lng };
+        }
+      }
+      return { lat: CITIES['Ribeirão Preto'].lat, lng: CITIES['Ribeirão Preto'].lng };
+    }
+
+    async function fetchOSRMMatrix(points) {
+      const coords = points.map(p => `${p.lng.toFixed(5)},${p.lat.toFixed(5)}`).join(';');
+      const url = `https://router.project-osrm.org/table/v1/driving/${coords}?annotations=duration,distance`;
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 7000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error('OSRM HTTP error');
+      const data = await res.json();
+      if (data.code !== 'Ok' || !data.durations || !data.distances) throw new Error('OSRM invalid');
+      return { durations: data.durations, distances: data.distances };
+    }
+
+    function buildOfflineMatrix(points) {
+      const n = points.length;
+      const durations = Array.from({ length: n }, () => Array(n).fill(0));
+      const distances = Array.from({ length: n }, () => Array(n).fill(0));
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          if (i === j) continue;
+          const roadKm = haversineKm(points[i].lat, points[i].lng, points[j].lat, points[j].lng) * 1.26;
+          distances[i][j] = roadKm * 1000;
+          durations[i][j] = (roadKm / 68) * 3600;
+        }
+      }
+      return { durations, distances };
+    }
+
+    function solveExactTSP(costMatrix, returnToOrigin) {
+      const m = costMatrix.length - 1;
+      if (m <= 1) return m === 1 ? [1] : [];
+
+      const fullMask = (1 << m) - 1;
+      const dp = Array.from({ length: 1 << m }, () => Float64Array.from({ length: m }, () => Infinity));
+      const parent = Array.from({ length: 1 << m }, () => Int8Array.from({ length: m }, () => -1));
+
+      for (let i = 0; i < m; i++) {
+        dp[1 << i][i] = costMatrix[0][i + 1];
+      }
+
+      for (let mask = 1; mask <= fullMask; mask++) {
+        for (let last = 0; last < m; last++) {
+          if (!(mask & (1 << last))) continue;
+          const curCost = dp[mask][last];
+          if (!isFinite(curCost)) continue;
+          for (let nxt = 0; nxt < m; nxt++) {
+            if (mask & (1 << nxt)) continue;
+            const nMask = mask | (1 << nxt);
+            const newCost = curCost + costMatrix[last + 1][nxt + 1];
+            if (newCost < dp[nMask][nxt]) {
+              dp[nMask][nxt] = newCost;
+              parent[nMask][nxt] = last;
+            }
+          }
+        }
+      }
+
+      let bestLast = 0;
+      let bestTotal = Infinity;
+      for (let last = 0; last < m; last++) {
+        const total = dp[fullMask][last] + (returnToOrigin ? costMatrix[last + 1][0] : 0);
+        if (total < bestTotal) {
+          bestTotal = total;
+          bestLast = last;
+        }
+      }
+
+      const order = [];
+      let mask = fullMask;
+      let curr = bestLast;
+      while (curr !== -1) {
+        order.push(curr + 1);
+        const prev = parent[mask][curr];
+        mask ^= (1 << curr);
+        curr = prev;
+      }
+      return order.reverse();
+    }
+
+    function solveHeuristicTSP(costMatrix, returnToOrigin) {
+      const m = costMatrix.length - 1;
+      const visited = new Set();
+      const order = [];
+      let cur = 0;
+      while (order.length < m) {
+        let best = -1, bestC = Infinity;
+        for (let i = 1; i <= m; i++) {
+          if (!visited.has(i) && costMatrix[cur][i] < bestC) {
+            bestC = costMatrix[cur][i];
+            best = i;
+          }
+        }
+        visited.add(best);
+        order.push(best);
+        cur = best;
+      }
+
+      const routeCost = (ord) => {
+        let c = costMatrix[0][ord[0]];
+        for (let i = 0; i < ord.length - 1; i++) c += costMatrix[ord[i]][ord[i + 1]];
+        if (returnToOrigin) c += costMatrix[ord[ord.length - 1]][0];
+        return c;
+      };
+
+      let improved = true;
+      while (improved) {
+        improved = false;
+        for (let i = 0; i < order.length - 1; i++) {
+          for (let k = i + 1; k < order.length; k++) {
+            const candidate = [
+              ...order.slice(0, i),
+              ...order.slice(i, k + 1).reverse(),
+              ...order.slice(k + 1)
+            ];
+            if (routeCost(candidate) + 1e-6 < routeCost(order)) {
+              for (let x = 0; x < order.length; x++) order[x] = candidate[x];
+              improved = true;
+            }
+          }
+        }
+      }
+      return order;
+    }
+
+    async function optimizeRoute() {
+      const pending = stops.filter(s => !s.done);
+      const done = stops.filter(s => s.done);
+
+      if (pending.length === 0) {
+        showToast('Adicione pelo menos uma parada pendente para otimizar.');
+        return;
+      }
+
+      const btn = document.getElementById('btnOptimize');
+      const oldHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Calculando rota mais rápida...`;
+
+      try {
+        const origin = { lat: settings.baseLat, lng: settings.baseLng };
+        const points = [origin, ...pending.map(s => ({ lat: s.lat, lng: s.lng }))];
+
+        let matrix, methodText;
+        try {
+          matrix = await fetchOSRMMatrix(points);
+          methodText = 'Calculada pela malha rodoviária real (OSRM) priorizando menor tempo de viagem.';
+        } catch (err) {
+          matrix = buildOfflineMatrix(points);
+          methodText = 'Modo offline: estimativa rodoviária calculada localmente.';
+        }
+
+        const orderIdx = pending.length <= 11
+          ? solveExactTSP(matrix.durations, settings.returnToBase)
+          : solveHeuristicTSP(matrix.durations, settings.returnToBase);
+
+        let totalDistM = 0;
+        let totalDurS = 0;
+        let prevIdx = 0;
+
+        const reorderedPending = orderIdx.map(idx => {
+          const stop = { ...pending[idx - 1] };
+          const dM = matrix.distances[prevIdx][idx] || 0;
+          const tS = matrix.durations[prevIdx][idx] || 0;
+          stop.legKm = Math.round((dM / 1000) * 10) / 10;
+          stop.legMin = Math.max(1, Math.round(tS / 60));
+          totalDistM += dM;
+          totalDurS += tS;
+          prevIdx = idx;
+          return stop;
+        });
+
+        if (settings.returnToBase && orderIdx.length > 0) {
+          totalDistM += matrix.distances[prevIdx][0] || 0;
+          totalDurS += matrix.durations[prevIdx][0] || 0;
+        }
+
+        stops = [...reorderedPending, ...done];
+        isOptimized = true;
+        routeMeta = {
+          distKm: Math.round((totalDistM / 1000) * 10) / 10,
+          durationMin: Math.max(1, Math.round(totalDurS / 60)),
+          method: methodText
+        };
+        saveState();
+        renderRouteView();
+        showToast('Rota otimizada! Mais rápida primeiro.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHTML;
+      }
+    }
+
+    function formatDuration(mins) {
+      if (mins == null) return '--';
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      if (h === 0) return `${m} min`;
+      return `${h}h ${String(m).padStart(2, '0')}m`;
+    }
+
+    function formatMapsPlace(item) {
+      const parts = [];
+      if (item.address && item.address.trim()) parts.push(item.address.trim());
+      if (item.city && item.city.trim()) parts.push(item.city.trim());
+      parts.push('SP', 'Brasil');
+      if (parts.length > 2) return parts.join(', ');
+      return `${item.lat},${item.lng}`;
+    }
+
+    function openSingleStopMaps(id) {
+      const s = stops.find(x => x.id === id);
+      if (!s) return;
+      const dest = encodeURIComponent(formatMapsPlace(s));
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
+      window.open(url, '_blank', 'noopener');
+    }
+
+    function getPendingBatches() {
+      const pending = stops.filter(s => !s.done);
+      const batches = [];
+      for (let i = 0; i < pending.length; i += 10) {
+        batches.push(pending.slice(i, i + 10));
+      }
+      return batches;
+    }
+
+    function openFullRouteMaps(batchIndex) {
+      const batches = getPendingBatches();
+      const batch = batches[batchIndex];
+      if (!batch || batch.length === 0) {
+        showToast('Não há paradas pendentes para abrir.');
+        return;
+      }
+
+      let originParam;
+      if (batchIndex === 0) {
+        originParam = settings.useGps
+          ? `${settings.baseLat},${settings.baseLng}`
+          : formatMapsPlace({ address: settings.baseAddress, city: settings.baseCity, lat: settings.baseLat, lng: settings.baseLng });
+      } else {
+        const prevBatch = batches[batchIndex - 1];
+        originParam = formatMapsPlace(prevBatch[prevBatch.length - 1]);
+      }
+
+      const lastStop = batch[batch.length - 1];
+      const waypoints = batch.slice(0, -1).map(formatMapsPlace);
+
+      let destination = formatMapsPlace(lastStop);
+      if (settings.returnToBase && batchIndex === batches.length - 1 && waypoints.length < 9) {
+        waypoints.push(destination);
+        destination = settings.useGps
+          ? `${settings.baseLat},${settings.baseLng}`
+          : formatMapsPlace({ address: settings.baseAddress, city: settings.baseCity, lat: settings.baseLat, lng: settings.baseLng });
+      }
+
+      let url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originParam)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+      if (waypoints.length > 0) {
+        url += `&waypoints=${encodeURIComponent(waypoints.join('|'))}`;
+      }
+      window.open(url, '_blank', 'noopener');
+    }
+
+    function shareWhatsApp() {
+      if (stops.length === 0) {
+        showToast('Nenhuma parada na rota para compartilhar.');
+        return;
+      }
+      const today = new Date().toLocaleDateString('pt-BR');
+      let text = `🚛 *Transporte Medeiros - Rota do Dia* (${today})\n`;
+      text += `📍 *Partida:* ${settings.baseName}\n`;
+      if (routeMeta.distKm != null) {
+        text += `🛣️ *Estimativa:* ${routeMeta.distKm} km • ${formatDuration(routeMeta.durationMin)}\n`;
+      }
+      text += `\n*Sequência de entregas:*\n`;
+      stops.forEach((s, idx) => {
+        const status = s.done ? '✅' : `${idx + 1}.`;
+        const leg = (!s.done && s.legKm != null) ? ` (${s.legKm} km / ~${s.legMin} min)` : '';
+        text += `\n${status} *${s.name}* — ${s.city}${leg}\n`;
+        if (s.address) text += `   📌 ${s.address}\n`;
+        if (s.obs) text += `   📝 ${s.obs}\n`;
+      });
+
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank', 'noopener');
+    }
+
+    function useCurrentGPS() {
+      if (!navigator.geolocation) {
+        showToast('GPS não disponível neste navegador.');
+        return;
+      }
+      showToast('Buscando localização GPS...');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          settings.baseLat = pos.coords.latitude;
+          settings.baseLng = pos.coords.longitude;
+          settings.baseName = 'Minha Localização Atual (GPS)';
+          settings.useGps = true;
+          isOptimized = false;
+          saveState();
+          renderRouteView();
+          showToast('Ponto de partida atualizado pelo GPS!');
+        },
+        () => {
+          showToast('Permita o acesso à localização para usar o GPS.');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    function renderRouteView() {
+      document.getElementById('originDisplay').textContent = settings.useGps
+        ? `GPS Atual (${settings.baseLat.toFixed(4)}, ${settings.baseLng.toFixed(4)})`
+        : `${settings.baseName} (${settings.baseCity})`;
+
+      const total = stops.length;
+      const doneCount = stops.filter(s => s.done).length;
+      const pendingCount = total - doneCount;
+
+      document.getElementById('statStops').textContent = `${pendingCount}`;
+      document.getElementById('statDist').textContent = routeMeta.distKm != null ? `${routeMeta.distKm} km` : '-- km';
+      document.getElementById('statTime').textContent = routeMeta.durationMin != null ? formatDuration(routeMeta.durationMin) : '--';
+
+      const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
+      document.getElementById('progressFill').style.width = `${pct}%`;
+      document.getElementById('progressText').textContent = `${doneCount}/${total} concluídas`;
+
+      const badge = document.getElementById('optBadge');
+      if (isOptimized) {
+        badge.textContent = 'Otimizada';
+        badge.classList.add('optimized');
+      } else {
+        badge.textContent = 'Aguardando otimizar';
+        badge.classList.remove('optimized');
+      }
+
+      const methodNote = document.getElementById('routeMethodNote');
+      if (isOptimized && routeMeta.method) {
+        methodNote.style.display = 'block';
+        methodNote.textContent = routeMeta.method;
+      } else {
+        methodNote.style.display = 'none';
+      }
+
+      const fullMapsArea = document.getElementById('fullMapsArea');
+      const batchCont = document.getElementById('mapsBatchContainer');
+      const btnFull = document.getElementById('btnFullMaps');
+      const batches = getPendingBatches();
+      if (batches.length > 0) {
+        fullMapsArea.style.display = 'block';
+        if (batches.length === 1) {
+          btnFull.style.display = 'inline-flex';
+          batchCont.innerHTML = '';
+        } else {
+          btnFull.style.display = 'none';
+          batchCont.innerHTML = batches.map((b, i) => `
+            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openFullRouteMaps(${i})">
+              Maps Parte ${i + 1} (${b.length} paradas)
+            </button>
+          `).join('');
+        }
+      } else {
+        fullMapsArea.style.display = 'none';
+      }
+
+      const listEl = document.getElementById('stopList');
+      if (stops.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <p>Nenhuma parada na rota de hoje.<br/>Adicione clientes fixos ou um endereço novo.</p>
+            <button class="btn btn-primary btn-sm" onclick="openAddModal('fixos')">+ Escolher Clientes Fixos</button>
+          </div>`;
+        return;
+      }
+
+      let orderNum = 0;
+      listEl.innerHTML = stops.map((s, idx) => {
+        if (!s.done) orderNum++;
+        const badgeLabel = s.done ? '✓' : orderNum;
+        const legHtml = (!s.done && s.legKm != null)
+          ? `<div class="stop-leg">Trecho: ${s.legKm} km • ~${s.legMin} min</div>`
+          : '';
+        const obsHtml = s.obs ? `<div class="stop-address" style="color:#475569;">📝 ${escapeHtml(s.obs)}</div>` : '';
+
+        return `
+          <article class="stop-card ${s.done ? 'done' : ''}">
+            <div class="stop-top">
+              <div class="stop-badge">${badgeLabel}</div>
+              <div class="stop-main">
+                <div class="stop-name-row">
+                  <span class="stop-name">${escapeHtml(s.name)}</span>
+                  <span class="chip">${escapeHtml(s.city)}</span>
+                </div>
+                ${s.address ? `<div class="stop-address">${escapeHtml(s.address)}</div>` : ''}
+                ${obsHtml}
+                ${legHtml}
+              </div>
+            </div>
+            <div class="stop-actions">
+              <div class="stop-actions-left">
+                <button class="btn btn-primary btn-sm" onclick="openSingleStopMaps('${s.id}')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                  Maps
+                </button>
+                <button class="btn ${s.done ? 'btn-outline' : 'btn-secondary'} btn-sm" onclick="toggleStopDone('${s.id}')">
+                  ${s.done ? 'Reabrir' : 'Concluir'}
+                </button>
+              </div>
+              <div class="stop-actions-right">
+                <button class="btn-icon" onclick="moveStop(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Subir">↑</button>
+                <button class="btn-icon" onclick="moveStop(${idx}, 1)" ${idx === stops.length - 1 ? 'disabled' : ''} title="Descer">↓</button>
+                <button class="btn-icon" onclick="removeStop('${s.id}')" title="Remover" style="color:#DC2626;">✕</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function toggleStopDone(id) {
+      const s = stops.find(x => x.id === id);
+      if (!s) return;
+      s.done = !s.done;
+      stops = [...stops.filter(x => !x.done), ...stops.filter(x => x.done)];
+      saveState();
+      renderRouteView();
+    }
+
+    function moveStop(idx, delta) {
+      const target = idx + delta;
+      if (target < 0 || target >= stops.length) return;
+      [stops[idx], stops[target]] = [stops[target], stops[idx]];
+      isOptimized = false;
+      saveState();
+      renderRouteView();
+    }
+
+    function removeStop(id) {
+      stops = stops.filter(x => x.id !== id);
+      isOptimized = false;
+      if (stops.length === 0) routeMeta = { distKm: null, durationMin: null, method: '' };
+      saveState();
+      renderRouteView();
+    }
+
+    function clearDoneStops() {
+      const before = stops.length;
+      stops = stops.filter(x => !x.done);
+      if (stops.length === before) {
+        showToast('Nenhuma entrega concluída para limpar.');
+        return;
+      }
+      saveState();
+      renderRouteView();
+      showToast('Entregas concluídas removidas.');
+    }
+
+    function clearAllStops() {
+      if (!confirm('Zerar todas as paradas da rota de hoje?')) return;
+      stops = [];
+      isOptimized = false;
+      routeMeta = { distKm: null, durationMin: null, method: '' };
+      saveState();
+      renderRouteView();
+      showToast('Rota do dia zerada.');
+    }
+
+    function loadDemoRoute() {
+      stops = DEFAULT_CLIENTS.map(c => ({
+        id: 's_' + Date.now() + '_' + c.id,
+        clientId: c.id,
+        name: c.name,
+        city: c.city,
+        address: c.address,
+        obs: c.obs,
+        lat: c.lat,
+        lng: c.lng,
+        done: false,
+        legKm: null,
+        legMin: null
+      }));
+      isOptimized = false;
+      routeMeta = { distKm: null, durationMin: null, method: '' };
+      saveState();
+      switchView('rota');
+      showToast('Rota de teste carregada! Toque em Otimizar.');
+    }
+
+    function renderCityChips(containerId, inputId, selectedCity) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = CITY_LIST.map(c => `
+        <button type="button" class="city-chip ${c === selectedCity ? 'selected' : ''}" onclick="selectChip('${containerId}','${inputId}','${c}')">${c}</button>
+      `).join('');
+    }
+
+    function selectChip(containerId, inputId, cityName) {
+      if (inputId) document.getElementById(inputId).value = cityName;
+      renderCityChips(containerId, inputId, cityName);
+    }
+
+    function openAddModal(tab = 'novo') {
+      document.getElementById('addModal').classList.add('open');
+      document.getElementById('inpStopCity').value = 'Taquaritinga';
+      document.getElementById('inpStopName').value = '';
+      document.getElementById('inpStopAddress').value = '';
+      document.getElementById('inpStopObs').value = '';
+      document.getElementById('inpSaveFixed').checked = false;
+      renderCityChips('modalCityChips', 'inpStopCity', 'Taquaritinga');
+      modalSelectedFixedIds.clear();
+      switchModalTab(tab);
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.remove('open');
+    }
+
+    function switchModalTab(tab) {
+      document.getElementById('tabNovo').classList.toggle('active', tab === 'novo');
+      document.getElementById('tabFixos').classList.toggle('active', tab === 'fixos');
+      document.getElementById('modalTabNovo').style.display = tab === 'novo' ? 'block' : 'none';
+      document.getElementById('modalTabFixos').style.display = tab === 'fixos' ? 'block' : 'none';
+      if (tab === 'fixos') renderModalFixedList();
+    }
+
+    async function addNewStop() {
+      const city = document.getElementById('inpStopCity').value.trim();
+      const name = document.getElementById('inpStopName').value.trim();
+      const address = document.getElementById('inpStopAddress').value.trim();
+      const obs = document.getElementById('inpStopObs').value.trim();
+      const saveFixed = document.getElementById('inpSaveFixed').checked;
+
+      if (!city) { showToast('Informe a cidade.'); return; }
+      const finalName = name || (address ? address : `Entrega em ${city}`);
+
+      const btn = document.getElementById('btnConfirmAddStop');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Localizando endereço...`;
+
+      try {
+        const coords = await geocodeAddress(address, city);
+        const newStop = {
+          id: 's_' + Date.now(),
+          name: finalName,
+          city,
+          address,
+          obs,
+          lat: coords.lat,
+          lng: coords.lng,
+          done: false,
+          legKm: null,
+          legMin: null
+        };
+        stops.unshift(newStop);
+        isOptimized = false;
+
+        if (saveFixed) {
+          clients.unshift({
+            id: 'c_' + Date.now(),
+            name: finalName,
+            city,
+            address,
+            obs,
+            lat: coords.lat,
+            lng: coords.lng
+          });
+        }
+
+        saveState();
+        closeAddModal();
+        renderRouteView();
+        showToast(saveFixed ? 'Parada adicionada e salva nos Fixos!' : 'Parada adicionada à rota!');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Adicionar à Rota';
+      }
+    }
+
+    function renderModalFixedList() {
+      const q = (document.getElementById('modalFixedSearch').value || '').toLowerCase();
+      const filtered = clients.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.city.toLowerCase().includes(q) ||
+        (c.address || '').toLowerCase().includes(q)
+      );
+      const el = document.getElementById('modalFixedList');
+      if (filtered.length === 0) {
+        el.innerHTML = `<p style="text-align:center;color:var(--muted);font-size:0.84rem;padding:18px 0;">Nenhum cliente fixo encontrado.</p>`;
+        return;
+      }
+      el.innerHTML = filtered.map(c => {
+        const checked = modalSelectedFixedIds.has(c.id);
+        return `
+          <label class="client-item ${checked ? 'selected' : ''}">
+            <input class="client-check" type="checkbox" ${checked ? 'checked' : ''} onchange="toggleModalFixed('${c.id}')" />
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:0.9rem;">${escapeHtml(c.name)} <span class="chip">${escapeHtml(c.city)}</span></div>
+              <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">${escapeHtml(c.address || 'Centro')}</div>
+            </div>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function toggleModalFixed(id) {
+      if (modalSelectedFixedIds.has(id)) modalSelectedFixedIds.delete(id);
+      else modalSelectedFixedIds.add(id);
+      renderModalFixedList();
+    }
+
+    function confirmModalFixedSelection() {
+      if (modalSelectedFixedIds.size === 0) {
+        showToast('Selecione pelo menos um cliente fixo.');
+        return;
+      }
+      let added = 0;
+      modalSelectedFixedIds.forEach(id => {
+        const c = clients.find(x => x.id === id);
+        if (c) {
+          stops.unshift({
+            id: 's_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+            clientId: c.id,
+            name: c.name,
+            city: c.city,
+            address: c.address,
+            obs: c.obs,
+            lat: c.lat,
+            lng: c.lng,
+            done: false,
+            legKm: null,
+            legMin: null
+          });
+          added++;
+        }
+      });
+      isOptimized = false;
+      saveState();
+      closeAddModal();
+      renderRouteView();
+      showToast(`${added} parada(s) adicionada(s)!`);
+    }
+
+    function renderClientsView() {
+      const q = (document.getElementById('clientSearch').value || '').toLowerCase();
+      const filtered = clients.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.city.toLowerCase().includes(q) ||
+        (c.address || '').toLowerCase().includes(q)
+      );
+
+      const bulkBar = document.getElementById('bulkAddBar');
+      document.getElementById('selectedFixedCount').textContent = selectedFixedIds.size;
+      bulkBar.style.display = selectedFixedIds.size > 0 ? 'block' : 'none';
+
+      const listEl = document.getElementById('clientsList');
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="empty-state"><p>Nenhum cliente fixo encontrado.</p></div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(c => {
+        const sel = selectedFixedIds.has(c.id);
+        return `
+          <div class="client-item ${sel ? 'selected' : ''}" onclick="toggleFixedSelection('${c.id}')">
+            <input class="client-check" type="checkbox" ${sel ? 'checked' : ''} onclick="event.stopPropagation(); toggleFixedSelection('${c.id}')" />
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:0.92rem;color:var(--blue-950);">
+                ${escapeHtml(c.name)} <span class="chip">${escapeHtml(c.city)}</span>
+              </div>
+              <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">${escapeHtml(c.address || 'Sem rua informada')}</div>
+              ${c.obs ? `<div style="font-size:0.75rem;color:#475569;margin-top:2px;">📝 ${escapeHtml(c.obs)}</div>` : ''}
+            </div>
+            <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
+              <button class="btn-icon" onclick="openClientModal('${c.id}')" title="Editar">✎</button>
+              <button class="btn-icon" onclick="deleteClient('${c.id}')" title="Excluir" style="color:#DC2626;">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleFixedSelection(id) {
+      if (selectedFixedIds.has(id)) selectedFixedIds.delete(id);
+      else selectedFixedIds.add(id);
+      renderClientsView();
+    }
+
+    function addSelectedFixedToRoute() {
+      let count = 0;
+      selectedFixedIds.forEach(id => {
+        const c = clients.find(x => x.id === id);
+        if (c) {
+          stops.unshift({
+            id: 's_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+            clientId: c.id,
+            name: c.name,
+            city: c.city,
+            address: c.address,
+            obs: c.obs,
+            lat: c.lat,
+            lng: c.lng,
+            done: false,
+            legKm: null,
+            legMin: null
+          });
+          count++;
+        }
+      });
+      selectedFixedIds.clear();
+      isOptimized = false;
+      saveState();
+      switchView('rota');
+      showToast(`${count} cliente(s) adicionado(s) à Rota do Dia!`);
+    }
+
+    function openClientModal(editId = null) {
+      document.getElementById('clientModal').classList.add('open');
+      if (editId) {
+        const c = clients.find(x => x.id === editId);
+        document.getElementById('clientModalTitle').textContent = 'Editar Cliente Fixo';
+        document.getElementById('editClientId').value = c.id;
+        document.getElementById('cliCity').value = c.city;
+        document.getElementById('cliName').value = c.name;
+        document.getElementById('cliAddress').value = c.address || '';
+        document.getElementById('cliObs').value = c.obs || '';
+        renderCityChips('clientCityChips', 'cliCity', c.city);
+      } else {
+        document.getElementById('clientModalTitle').textContent = 'Novo Cliente Fixo';
+        document.getElementById('editClientId').value = '';
+        document.getElementById('cliCity').value = 'Taquaritinga';
+        document.getElementById('cliName').value = '';
+        document.getElementById('cliAddress').value = '';
+        document.getElementById('cliObs').value = '';
+        renderCityChips('clientCityChips', 'cliCity', 'Taquaritinga');
+      }
+    }
+
+    function closeClientModal() {
+      document.getElementById('clientModal').classList.remove('open');
+    }
+
+    async function saveClient() {
+      const id = document.getElementById('editClientId').value;
+      const city = document.getElementById('cliCity').value.trim();
+      const name = document.getElementById('cliName').value.trim();
+      const address = document.getElementById('cliAddress').value.trim();
+      const obs = document.getElementById('cliObs').value.trim();
+
+      if (!name || !city) { showToast('Informe nome e cidade.'); return; }
+
+      const btn = document.getElementById('btnSaveClient');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Salvando...`;
+
+      try {
+        const coords = await geocodeAddress(address, city);
+        if (id) {
+          const idx = clients.findIndex(x => x.id === id);
+          if (idx > -1) clients[idx] = { ...clients[idx], name, city, address, obs, lat: coords.lat, lng: coords.lng };
+        } else {
+          clients.unshift({ id: 'c_' + Date.now(), name, city, address, obs, lat: coords.lat, lng: coords.lng });
+        }
+        saveState();
+        closeClientModal();
+        renderClientsView();
+        showToast('Cliente fixo salvo!');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Cliente Fixo';
+      }
+    }
+
+    function deleteClient(id) {
+      if (!confirm('Remover este cliente fixo?')) return;
+      clients = clients.filter(x => x.id !== id);
+      selectedFixedIds.delete(id);
+      saveState();
+      renderClientsView();
+      showToast('Cliente removido.');
+    }
+
+    let selectedBaseCity = settings.baseCity;
+
+    function renderSettingsView() {
+      selectedBaseCity = settings.baseCity;
+      document.getElementById('cfgBaseName').value = settings.baseName;
+      document.getElementById('cfgBaseAddress').value = settings.baseAddress || '';
+      document.getElementById('cfgReturnBase').checked = !!settings.returnToBase;
+      renderSettingsCityChips();
+    }
+
+    function renderSettingsCityChips() {
+      const el = document.getElementById('cfgCityChips');
+      el.innerHTML = CITY_LIST.map(c => `
+        <button type="button" class="city-chip ${c === selectedBaseCity ? 'selected' : ''}" onclick="pickBaseCity('${c}')">${c}</button>
+      `).join('');
+    }
+
+    function pickBaseCity(city) {
+      selectedBaseCity = city;
+      if (document.getElementById('cfgBaseName').value.startsWith('Base —')) {
+        document.getElementById('cfgBaseName').value = `Base — ${city}`;
+      }
+      renderSettingsCityChips();
+    }
+
+    async function saveSettings() {
+      const baseName = document.getElementById('cfgBaseName').value.trim() || `Base — ${selectedBaseCity}`;
+      const baseAddress = document.getElementById('cfgBaseAddress').value.trim();
+      const returnToBase = document.getElementById('cfgReturnBase').checked;
+
+      showToast('Atualizando coordenadas da base...');
+      const coords = await geocodeAddress(baseAddress, selectedBaseCity);
+
+      settings = {
+        baseName,
+        baseCity: selectedBaseCity,
+        baseAddress,
+        baseLat: coords.lat,
+        baseLng: coords.lng,
+        useGps: false,
+        returnToBase
+      };
+      isOptimized = false;
+      saveState();
+      switchView('rota');
+      showToast('Configurações salvas!');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('btnInstallHeader').classList.add('visible');
+      if (!localStorage.getItem('tm_install_dismissed')) {
+        document.getElementById('installBanner').classList.add('show');
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      document.getElementById('btnInstallHeader').classList.remove('visible');
+      document.getElementById('installBanner').classList.remove('show');
+      showToast('Transporte Medeiros instalado com sucesso!');
+    });
+
+    async function triggerInstall() {
+      if (!deferredPrompt) {
+        showToast('No menu do navegador, toque em "Adicionar à tela inicial".');
+        return;
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredPrompt = null;
+        document.getElementById('btnInstallHeader').classList.remove('visible');
+        document.getElementById('installBanner').classList.remove('show');
+      }
+    }
+
+    function dismissInstallBanner() {
+      localStorage.setItem('tm_install_dismissed', '1');
+      document.getElementById('installBanner').classList.remove('show');
+    }
+
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isIos && !isStandalone && !localStorage.getItem('tm_install_dismissed')) {
+      document.getElementById('installBannerText').textContent = 'No Safari, toque em Compartilhar (↑) e depois em "Adicionar à Tela de Início".';
+      document.getElementById('btnInstallBanner').style.display = 'none';
+      document.getElementById('installBanner').classList.add('show');
+    }
+
+    renderRouteView();
+  </script>
+</body>
+</html>
