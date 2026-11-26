@@ -678,6 +678,113 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+
+    /* Trip Data / Closing Card (Driver, Plate, KM + Photos) */
+    .trip-summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .trip-summary-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .chip-ok {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: #A7F3D0;
+    }
+    .trip-panel {
+      display: none;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+    }
+    .trip-panel.open { display: block; }
+
+    .input-photo-row {
+      display: flex;
+      align-items: stretch;
+      gap: 7px;
+    }
+    .input-photo-row input {
+      flex: 1;
+      min-width: 0;
+    }
+    .btn-cam {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 11px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--blue-100);
+      background: var(--blue-50);
+      color: var(--blue-700);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: inherit;
+    }
+    .btn-cam:active { transform: scale(0.97); }
+    .btn-cam-gal {
+      background: #fff;
+      border-color: var(--border);
+      color: var(--muted);
+    }
+    .btn-cam-gal:hover { color: var(--blue-700); border-color: var(--blue-100); background: var(--blue-50); }
+
+    .photo-preview-card {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .photo-preview-card.has-photo { display: flex; }
+    .photo-thumb {
+      width: 64px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: zoom-in;
+      flex-shrink: 0;
+      background: #E2E8F0;
+    }
+    .photo-preview-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .photo-preview-info strong {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--blue-950);
+    }
+    .photo-preview-info small {
+      display: block;
+      font-size: 0.73rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .lightbox-img {
+      width: 100%;
+      max-height: 70dvh;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #0F172A;
+    }
+
     .spinner {
       width: 16px;
       height: 16px;
@@ -813,6 +920,85 @@
         </div>
       </div>
 
+      <!-- Dados da Viagem / Fechamento para PDF -->
+      <div class="card">
+        <div class="trip-summary-bar" onclick="toggleTripPanel()">
+          <div style="min-width:0; flex:1;">
+            <h2 class="card-title" style="margin:0;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              Dados da Viagem (PDF)
+            </h2>
+            <div id="tripSummaryChips" class="trip-summary-meta"></div>
+          </div>
+          <button id="btnToggleTrip" type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleTripPanel()">
+            Preencher / Fotos
+          </button>
+        </div>
+
+        <div id="tripPanel" class="trip-panel">
+          <div class="field">
+            <label for="inpDriverName">Nome do Motorista</label>
+            <input id="inpDriverName" type="text" placeholder="Ex.: Carlos Medeiros" oninput="updateTripField('driverName', this.value)" />
+          </div>
+
+          <div class="field">
+            <label for="inpVehiclePlate">Placa do Veículo (digitar e/ou foto)</label>
+            <div class="input-photo-row">
+              <input id="inpVehiclePlate" type="text" maxlength="10" placeholder="Ex.: ABC-1D23" style="text-transform:uppercase;" oninput="handlePlateInput(this)" />
+              <button type="button" class="btn-cam" onclick="document.getElementById('filePlateCam').click()" title="Tirar foto da placa com a câmera">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Foto
+              </button>
+              <button type="button" class="btn-cam btn-cam-gal" onclick="document.getElementById('filePlateGal').click()" title="Escolher foto da placa na galeria">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+            </div>
+            <input id="filePlateCam" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload('platePhoto', this)" />
+            <input id="filePlateGal" type="file" accept="image/*" style="display:none;" onchange="handlePhotoUpload('platePhoto', this)" />
+            <div id="previewPlatePhoto" class="photo-preview-card">
+              <img id="imgPlatePhoto" class="photo-thumb" alt="Foto da placa do veículo" onclick="openLightbox('platePhoto')" />
+              <div class="photo-preview-info">
+                <strong>Foto da Placa anexada</strong>
+                <small id="metaPlatePhoto">Toque na imagem para ampliar</small>
+              </div>
+              <button type="button" class="btn btn-danger-soft btn-sm" onclick="removeTripPhoto('platePhoto')">Remover</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="inpFinalKm">KM Final (digitar e/ou foto do painel)</label>
+            <div class="input-photo-row">
+              <input id="inpFinalKm" type="text" inputmode="numeric" placeholder="Ex.: 148520" oninput="updateTripField('finalKm', this.value)" />
+              <button type="button" class="btn-cam" onclick="document.getElementById('fileKmCam').click()" title="Tirar foto do painel (KM final)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Foto
+              </button>
+              <button type="button" class="btn-cam btn-cam-gal" onclick="document.getElementById('fileKmGal').click()" title="Escolher foto do KM na galeria">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+            </div>
+            <input id="fileKmCam" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload('kmPhoto', this)" />
+            <input id="fileKmGal" type="file" accept="image/*" style="display:none;" onchange="handlePhotoUpload('kmPhoto', this)" />
+            <div id="previewKmPhoto" class="photo-preview-card">
+              <img id="imgKmPhoto" class="photo-thumb" alt="Foto do KM final no painel" onclick="openLightbox('kmPhoto')" />
+              <div class="photo-preview-info">
+                <strong>Foto do KM Final anexada</strong>
+                <small id="metaKmPhoto">Toque na imagem para ampliar</small>
+              </div>
+              <button type="button" class="btn btn-danger-soft btn-sm" onclick="removeTripPhoto('kmPhoto')">Remover</button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+            <button type="button" class="btn btn-pdf btn-sm" style="flex:1;" onclick="downloadRoutePDF()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+              Baixar PDF com estes dados
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearDailyKm()">Limpar KM</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">
@@ -870,10 +1056,22 @@
           <input id="cfgBaseAddress" type="text" placeholder="Rua, número e bairro..." />
         </div>
 
-        <label class="checkbox-row" style="margin-bottom:14px;">
+        <label class="checkbox-row" style="margin-bottom:16px;">
           <input id="cfgReturnBase" type="checkbox" />
           Considerar retorno para a base no final da rota
         </label>
+
+        <div style="border-top:1px dashed var(--border); padding-top:14px; margin-bottom:12px;">
+          <div style="font-size:0.84rem; font-weight:700; color:var(--blue-900); margin-bottom:10px;">Motorista e Veículo Padrão (para o PDF)</div>
+          <div class="field">
+            <label for="cfgDriverName">Nome do Motorista</label>
+            <input id="cfgDriverName" type="text" placeholder="Ex.: Carlos Medeiros" />
+          </div>
+          <div class="field">
+            <label for="cfgVehiclePlate">Placa do Veículo</label>
+            <input id="cfgVehiclePlate" type="text" maxlength="10" placeholder="Ex.: ABC-1D23" style="text-transform:uppercase;" />
+          </div>
+        </div>
 
         <button class="btn btn-primary" style="width:100%;" onclick="saveSettings()">Salvar Configurações</button>
       </div>
@@ -992,6 +1190,17 @@
     </div>
   </div>
 
+  <div id="lightboxModal" class="modal-backdrop" onclick="if(event.target===this) closeLightbox()">
+    <div class="modal" style="max-width:600px;">
+      <div class="modal-head">
+        <h3 id="lightboxTitle">Visualizar Foto</h3>
+        <button class="btn-icon" onclick="closeLightbox()" aria-label="Fechar">✕</button>
+      </div>
+      <img id="lightboxImg" class="lightbox-img" alt="Foto ampliada" />
+      <div id="lightboxCaption" style="font-size:0.8rem; color:var(--muted); margin-top:8px; text-align:center;"></div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -1008,7 +1217,8 @@
     const STORAGE_KEYS = {
       stops: 'tm_stops_v1',
       clients: 'tm_clients_v1',
-      settings: 'tm_settings_v1'
+      settings: 'tm_settings_v1',
+      trip: 'tm_trip_v1'
     };
 
     const DEFAULT_SETTINGS = {
@@ -1018,7 +1228,17 @@
       baseLat: CITIES['Ribeirão Preto'].lat,
       baseLng: CITIES['Ribeirão Preto'].lng,
       useGps: false,
-      returnToBase: false
+      returnToBase: false,
+      driverName: '',
+      vehiclePlate: ''
+    };
+
+    const DEFAULT_TRIP = {
+      driverName: '',
+      vehiclePlate: '',
+      finalKm: '',
+      platePhoto: null,
+      kmPhoto: null
     };
 
     const DEFAULT_CLIENTS = [
@@ -1029,9 +1249,13 @@
       { id: 'c5', name: 'Mercado Jaboticabal', city: 'Jaboticabal', address: 'Av. Pintos, Centro', obs: 'Doca 2', lat: -21.2552, lng: -48.3216 }
     ];
 
-    let settings = loadJSON(STORAGE_KEYS.settings, DEFAULT_SETTINGS);
+    let settings = { ...DEFAULT_SETTINGS, ...loadJSON(STORAGE_KEYS.settings, DEFAULT_SETTINGS) };
     let clients = loadJSON(STORAGE_KEYS.clients, DEFAULT_CLIENTS);
     let stops = loadJSON(STORAGE_KEYS.stops, null);
+    let tripData = { ...DEFAULT_TRIP, ...loadJSON(STORAGE_KEYS.trip, DEFAULT_TRIP) };
+    if (!tripData.driverName && settings.driverName) tripData.driverName = settings.driverName;
+    if (!tripData.vehiclePlate && settings.vehiclePlate) tripData.vehiclePlate = settings.vehiclePlate;
+    let tripPanelOpen = false;
     let isOptimized = false;
     let routeMeta = { distKm: null, durationMin: null, method: '' };
     let selectedFixedIds = new Set();
@@ -1065,9 +1289,14 @@
     }
 
     function saveState() {
-      localStorage.setItem(STORAGE_KEYS.stops, JSON.stringify(stops));
-      localStorage.setItem(STORAGE_KEYS.clients, JSON.stringify(clients));
-      localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
+      try {
+        localStorage.setItem(STORAGE_KEYS.stops, JSON.stringify(stops));
+        localStorage.setItem(STORAGE_KEYS.clients, JSON.stringify(clients));
+        localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
+        localStorage.setItem(STORAGE_KEYS.trip, JSON.stringify(tripData));
+      } catch (e) {
+        showToast('Armazenamento cheio. Remova uma foto antiga para liberar espaço.');
+      }
     }
 
     let toastTimer;
@@ -1402,6 +1631,9 @@
       }
       const today = new Date().toLocaleDateString('pt-BR');
       let text = `🚛 *Transporte Medeiros - Rota do Dia* (${today})\n`;
+      if (tripData.driverName) text += `👤 *Motorista:* ${tripData.driverName}\n`;
+      if (tripData.vehiclePlate) text += `🚚 *Placa:* ${tripData.vehiclePlate}\n`;
+      if (tripData.finalKm) text += `📟 *KM Final:* ${formatKmDisplay(tripData.finalKm)}\n`;
       text += `📍 *Partida:* ${settings.baseName}\n`;
       if (routeMeta.distKm != null) {
         text += `🛣️ *Estimativa:* ${routeMeta.distKm} km • ${formatDuration(routeMeta.durationMin)}\n`;
@@ -1663,29 +1895,163 @@
           y += rowH;
         });
 
-        // Conference / Signature block
-        if (y + 26 > pageH - 16) {
+        // Conference / Driver / Vehicle / KM block
+        if (y + 28 > pageH - 16) {
           doc.addPage();
           drawPageHeader(false);
-          y = 28;
+          y = 26;
         } else {
-          y += 10;
+          y += 9;
         }
+
+        const driverVal = (tripData.driverName || '').trim();
+        const plateVal = (tripData.vehiclePlate || '').trim();
+        const kmVal = (tripData.finalKm || '').trim();
 
         doc.setFillColor(248, 250, 252);
         doc.setDrawColor(226, 232, 240);
-        doc.roundedRect(margin, y, contentW, 20, 2.5, 2.5, 'FD');
+        doc.roundedRect(margin, y, contentW, 22, 2.5, 2.5, 'FD');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
-        doc.setTextColor(100, 116, 139);
+        doc.setTextColor(29, 78, 216);
         doc.text('CONFERÊNCIA DA VIAGEM', margin + 4, y + 5.5);
 
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8.2);
-        doc.setTextColor(51, 65, 85);
-        doc.text('Motorista: ______________________________', margin + 4, y + 13.5);
-        doc.text('Placa / Veículo: _____________________', margin + 88, y + 13.5);
-        doc.text('KM Final: ____________', margin + 148, y + 13.5);
+        const col1X = margin + 4;
+        const col2X = margin + 78;
+        const col3X = margin + 134;
+
+        // Labels
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(100, 116, 139);
+        doc.text('MOTORISTA', col1X, y + 11.2);
+        doc.text('PLACA DO VEÍCULO', col2X, y + 11.2);
+        doc.text('KM FINAL', col3X, y + 11.2);
+
+        // Values
+        doc.setFontSize(9.2);
+        if (driverVal) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(15, 23, 42);
+          doc.text(doc.splitTextToSize(driverVal, 68)[0], col1X, y + 17.5);
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(148, 163, 184);
+          doc.text('____________________________', col1X, y + 17.5);
+        }
+
+        if (plateVal) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(15, 23, 42);
+          doc.text(plateVal, col2X, y + 17.5);
+        } else if (tripData.platePhoto) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(29, 78, 216);
+          doc.text('Ver foto abaixo', col2X, y + 17.5);
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(148, 163, 184);
+          doc.text('____________________', col2X, y + 17.5);
+        }
+
+        if (kmVal) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(15, 23, 42);
+          doc.text(formatKmDisplay(kmVal), col3X, y + 17.5);
+        } else if (tripData.kmPhoto) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(29, 78, 216);
+          doc.text('Ver foto abaixo', col3X, y + 17.5);
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(148, 163, 184);
+          doc.text('________________', col3X, y + 17.5);
+        }
+
+        y += 22;
+
+        // Embedded Photos Section (Plate & Final KM)
+        const photoCards = [];
+        if (tripData.platePhoto && tripData.platePhoto.dataUrl) {
+          photoCards.push({
+            title: 'FOTO DA PLACA DO VEÍCULO',
+            subtitle: plateVal ? `Placa: ${plateVal}` : 'Registro fotográfico da placa',
+            photo: tripData.platePhoto
+          });
+        }
+        if (tripData.kmPhoto && tripData.kmPhoto.dataUrl) {
+          photoCards.push({
+            title: 'FOTO DO KM FINAL (PAINEL)',
+            subtitle: kmVal ? `KM informado: ${formatKmDisplay(kmVal)}` : 'Registro fotográfico do painel',
+            photo: tripData.kmPhoto
+          });
+        }
+
+        if (photoCards.length > 0) {
+          const cardH = 68;
+          const sectionNeeded = cardH + 14;
+          if (y + sectionNeeded > pageH - 16) {
+            doc.addPage();
+            drawPageHeader(false);
+            y = 26;
+          } else {
+            y += 8;
+          }
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10);
+          doc.setTextColor(15, 23, 42);
+          doc.text('Comprovantes Fotográficos', margin, y);
+          y += 4;
+
+          const gap = 6;
+          const cardW = photoCards.length === 2 ? (contentW - gap) / 2 : 108;
+
+          photoCards.forEach((item, idx) => {
+            const cx = margin + idx * (cardW + gap);
+            doc.setFillColor(255, 255, 255);
+            doc.setDrawColor(203, 213, 225);
+            doc.roundedRect(cx, y, cardW, cardH, 2.5, 2.5, 'FD');
+
+            // Top mini bar inside card
+            doc.setFillColor(239, 246, 255);
+            doc.roundedRect(cx + 0.4, y + 0.4, cardW - 0.8, 11.5, 2, 2, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(7.4);
+            doc.setTextColor(29, 78, 216);
+            doc.text(item.title, cx + 3.5, y + 5.2);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7.4);
+            doc.setTextColor(51, 65, 85);
+            doc.text(doc.splitTextToSize(item.subtitle, cardW - 7)[0], cx + 3.5, y + 9.8);
+
+            // Fit image preserving aspect ratio
+            const boxX = cx + 3.5;
+            const boxY = y + 14;
+            const boxW = cardW - 7;
+            const boxH = cardH - 22;
+            const iw = item.photo.width || 4;
+            const ih = item.photo.height || 3;
+            const scale = Math.min(boxW / iw, boxH / ih);
+            const drawW = iw * scale;
+            const drawH = ih * scale;
+            const drawX = boxX + (boxW - drawW) / 2;
+            const drawY = boxY + (boxH - drawH) / 2;
+
+            doc.setFillColor(248, 250, 252);
+            doc.rect(boxX, boxY, boxW, boxH, 'F');
+            doc.addImage(item.photo.dataUrl, 'JPEG', drawX, drawY, drawW, drawH, undefined, 'FAST');
+
+            // Timestamp footer inside card
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(6.8);
+            doc.setTextColor(100, 116, 139);
+            const capTime = item.photo.capturedAt ? `Anexada às ${item.photo.capturedAt}` : 'Foto anexada';
+            doc.text(capTime, cx + cardW / 2, y + cardH - 2.6, { align: 'center' });
+          });
+
+          y += cardH;
+        }
 
         // Footer on every page
         const totalPages = doc.internal.getNumberOfPages();
@@ -1741,6 +2107,18 @@
           <div class="box"><strong>Estimativa:</strong><br>${routeMeta.distKm != null ? routeMeta.distKm + ' km' : '--'} • ${routeMeta.durationMin != null ? formatDuration(routeMeta.durationMin) : '--'}</div>
         </div>
         <table><thead><tr><th>#</th><th>Cliente</th><th>Cidade / Endereço</th><th>Trecho</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="meta" style="margin-top:16px;">
+          <div class="box"><strong>Motorista:</strong><br>${escapeHtml(tripData.driverName || '_______________________')}</div>
+          <div class="box"><strong>Placa do Veículo:</strong><br>${escapeHtml(tripData.vehiclePlate || (tripData.platePhoto ? 'Ver foto abaixo' : '_______________'))}</div>
+          <div class="box"><strong>KM Final:</strong><br>${escapeHtml(tripData.finalKm ? formatKmDisplay(tripData.finalKm) : (tripData.kmPhoto ? 'Ver foto abaixo' : '_____________'))}</div>
+        </div>
+        ${(tripData.platePhoto || tripData.kmPhoto) ? `
+          <h3 style="margin:18px 0 8px;color:#1E3A8A;">Comprovantes Fotográficos</h3>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;">
+            ${tripData.platePhoto ? `<div style="flex:1;min-width:220px;border:1px solid #CBD5E1;border-radius:10px;padding:10px;text-align:center;"><div style="font-weight:700;font-size:12px;color:#1D4ED8;margin-bottom:6px;">FOTO DA PLACA${tripData.vehiclePlate ? ' — ' + escapeHtml(tripData.vehiclePlate) : ''}</div><img src="${tripData.platePhoto.dataUrl}" style="max-width:100%;max-height:220px;border-radius:6px;" /><div style="font-size:11px;color:#64748B;margin-top:4px;">Anexada às ${escapeHtml(tripData.platePhoto.capturedAt || '')}</div></div>` : ''}
+            ${tripData.kmPhoto ? `<div style="flex:1;min-width:220px;border:1px solid #CBD5E1;border-radius:10px;padding:10px;text-align:center;"><div style="font-weight:700;font-size:12px;color:#1D4ED8;margin-bottom:6px;">FOTO DO KM FINAL${tripData.finalKm ? ' — ' + escapeHtml(formatKmDisplay(tripData.finalKm)) : ''}</div><img src="${tripData.kmPhoto.dataUrl}" style="max-width:100%;max-height:220px;border-radius:6px;" /><div style="font-size:11px;color:#64748B;margin-top:4px;">Anexada às ${escapeHtml(tripData.kmPhoto.capturedAt || '')}</div></div>` : ''}
+          </div>
+        ` : ''}
         <script>window.onload=function(){window.print();};<\/script>
         </body></html>`);
       w.document.close();
@@ -1772,7 +2150,191 @@
       );
     }
 
+
+    /* ========= TRIP DATA (DRIVER, PLATE, KM + PHOTOS) ========= */
+    function formatKmDisplay(val) {
+      const str = String(val || '').trim();
+      if (!str) return '';
+      if (/km$/i.test(str)) return str;
+      const digits = str.replace(/\D/g, '');
+      if (digits && digits === str.replace(/[.,\s]/g, '')) {
+        return `${Number(digits).toLocaleString('pt-BR')} km`;
+      }
+      return `${str} km`;
+    }
+
+    function toggleTripPanel() {
+      tripPanelOpen = !tripPanelOpen;
+      renderTripPanel();
+    }
+
+    function updateTripField(field, value) {
+      tripData[field] = value;
+      saveState();
+      renderTripSummaryChips();
+    }
+
+    function handlePlateInput(el) {
+      const up = (el.value || '').toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      el.value = up;
+      tripData.vehiclePlate = up;
+      saveState();
+      renderTripSummaryChips();
+    }
+
+    function compressImageFile(file, maxDim = 1000, quality = 0.78) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Falha ao ler imagem'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Imagem inválida'));
+          img.onload = () => {
+            let w = img.naturalWidth || img.width;
+            let h = img.naturalHeight || img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w >= h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve({
+              dataUrl,
+              width: w,
+              height: h,
+              capturedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            });
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handlePhotoUpload(photoKey, inputEl) {
+      const file = inputEl.files && inputEl.files[0];
+      if (!file) return;
+      showToast('Processando foto...');
+      try {
+        const compressed = await compressImageFile(file);
+        tripData[photoKey] = compressed;
+        saveState();
+        renderTripPanel();
+        showToast(photoKey === 'platePhoto' ? 'Foto da placa anexada!' : 'Foto do KM final anexada!');
+      } catch (err) {
+        showToast('Não foi possível processar esta foto. Tente novamente.');
+      } finally {
+        inputEl.value = '';
+      }
+    }
+
+    function removeTripPhoto(photoKey) {
+      tripData[photoKey] = null;
+      saveState();
+      renderTripPanel();
+      showToast('Foto removida.');
+    }
+
+    function clearDailyKm() {
+      tripData.finalKm = '';
+      tripData.kmPhoto = null;
+      saveState();
+      renderTripPanel();
+      showToast('KM final e foto do painel limpos.');
+    }
+
+    function openLightbox(photoKey) {
+      const photo = tripData[photoKey];
+      if (!photo || !photo.dataUrl) return;
+      document.getElementById('lightboxTitle').textContent =
+        photoKey === 'platePhoto' ? 'Foto da Placa do Veículo' : 'Foto do KM Final (Painel)';
+      document.getElementById('lightboxImg').src = photo.dataUrl;
+      const val = photoKey === 'platePhoto'
+        ? (tripData.vehiclePlate ? `Placa: ${tripData.vehiclePlate} • ` : '')
+        : (tripData.finalKm ? `KM: ${formatKmDisplay(tripData.finalKm)} • ` : '');
+      document.getElementById('lightboxCaption').textContent = `${val}Anexada às ${photo.capturedAt || '--'}`;
+      document.getElementById('lightboxModal').classList.add('open');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightboxModal').classList.remove('open');
+    }
+
+    function renderTripSummaryChips() {
+      const chipsEl = document.getElementById('tripSummaryChips');
+      if (!chipsEl) return;
+      const parts = [];
+      if (tripData.driverName && tripData.driverName.trim()) {
+        parts.push(`<span class="chip">👤 ${escapeHtml(tripData.driverName.trim())}</span>`);
+      }
+      if (tripData.vehiclePlate && tripData.vehiclePlate.trim()) {
+        parts.push(`<span class="chip">🚚 ${escapeHtml(tripData.vehiclePlate.trim())}</span>`);
+      }
+      if (tripData.finalKm && tripData.finalKm.trim()) {
+        parts.push(`<span class="chip">📟 ${escapeHtml(formatKmDisplay(tripData.finalKm))}</span>`);
+      }
+      if (tripData.platePhoto) {
+        parts.push(`<span class="chip chip-ok">📷 Foto Placa</span>`);
+      }
+      if (tripData.kmPhoto) {
+        parts.push(`<span class="chip chip-ok">📷 Foto KM</span>`);
+      }
+      if (parts.length === 0) {
+        parts.push(`<span class="chip" style="background:#F1F5F9;color:#64748B;border-color:#E2E8F0;">Motorista, Placa e KM (opcional)</span>`);
+      }
+      chipsEl.innerHTML = parts.join('');
+    }
+
+    function renderTripPanel() {
+      const panel = document.getElementById('tripPanel');
+      const btn = document.getElementById('btnToggleTrip');
+      if (!panel) return;
+      panel.classList.toggle('open', tripPanelOpen);
+      btn.textContent = tripPanelOpen ? 'Recolher' : 'Preencher / Fotos';
+
+      const inpDriver = document.getElementById('inpDriverName');
+      const inpPlate = document.getElementById('inpVehiclePlate');
+      const inpKm = document.getElementById('inpFinalKm');
+      if (document.activeElement !== inpDriver) inpDriver.value = tripData.driverName || '';
+      if (document.activeElement !== inpPlate) inpPlate.value = tripData.vehiclePlate || '';
+      if (document.activeElement !== inpKm) inpKm.value = tripData.finalKm || '';
+
+      // Plate photo preview
+      const plateCard = document.getElementById('previewPlatePhoto');
+      if (tripData.platePhoto && tripData.platePhoto.dataUrl) {
+        plateCard.classList.add('has-photo');
+        document.getElementById('imgPlatePhoto').src = tripData.platePhoto.dataUrl;
+        document.getElementById('metaPlatePhoto').textContent = `Anexada às ${tripData.platePhoto.capturedAt || '--'} • Toque para ampliar`;
+      } else {
+        plateCard.classList.remove('has-photo');
+      }
+
+      // KM photo preview
+      const kmCard = document.getElementById('previewKmPhoto');
+      if (tripData.kmPhoto && tripData.kmPhoto.dataUrl) {
+        kmCard.classList.add('has-photo');
+        document.getElementById('imgKmPhoto').src = tripData.kmPhoto.dataUrl;
+        document.getElementById('metaKmPhoto').textContent = `Anexada às ${tripData.kmPhoto.capturedAt || '--'} • Toque para ampliar`;
+      } else {
+        kmCard.classList.remove('has-photo');
+      }
+
+      renderTripSummaryChips();
+    }
+
     function renderRouteView() {
+      renderTripPanel();
       document.getElementById('originDisplay').textContent = settings.useGps
         ? `GPS Atual (${settings.baseLat.toFixed(4)}, ${settings.baseLng.toFixed(4)})`
         : `${settings.baseName} (${settings.baseCity})`;
@@ -1924,10 +2486,12 @@
     }
 
     function clearAllStops() {
-      if (!confirm('Zerar todas as paradas da rota de hoje?')) return;
+      if (!confirm('Zerar todas as paradas e o KM final da rota de hoje?')) return;
       stops = [];
       isOptimized = false;
       routeMeta = { distKm: null, durationMin: null, method: '' };
+      tripData.finalKm = '';
+      tripData.kmPhoto = null;
       saveState();
       renderRouteView();
       showToast('Rota do dia zerada.');
@@ -2253,6 +2817,8 @@
       document.getElementById('cfgBaseName').value = settings.baseName;
       document.getElementById('cfgBaseAddress').value = settings.baseAddress || '';
       document.getElementById('cfgReturnBase').checked = !!settings.returnToBase;
+      document.getElementById('cfgDriverName').value = settings.driverName || tripData.driverName || '';
+      document.getElementById('cfgVehiclePlate').value = settings.vehiclePlate || tripData.vehiclePlate || '';
       renderSettingsCityChips();
     }
 
@@ -2275,8 +2841,10 @@
       const baseName = document.getElementById('cfgBaseName').value.trim() || `Base — ${selectedBaseCity}`;
       const baseAddress = document.getElementById('cfgBaseAddress').value.trim();
       const returnToBase = document.getElementById('cfgReturnBase').checked;
+      const driverName = document.getElementById('cfgDriverName').value.trim();
+      const vehiclePlate = document.getElementById('cfgVehiclePlate').value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
 
-      showToast('Atualizando coordenadas da base...');
+      showToast('Atualizando configurações...');
       const coords = await geocodeAddress(baseAddress, selectedBaseCity);
 
       settings = {
@@ -2286,8 +2854,12 @@
         baseLat: coords.lat,
         baseLng: coords.lng,
         useGps: false,
-        returnToBase
+        returnToBase,
+        driverName,
+        vehiclePlate
       };
+      if (driverName) tripData.driverName = driverName;
+      if (vehiclePlate) tripData.vehiclePlate = vehiclePlate;
       isOptimized = false;
       saveState();
       switchView('rota');

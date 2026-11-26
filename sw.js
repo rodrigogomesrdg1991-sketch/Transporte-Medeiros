@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transporte-medeiros-v2';
+const CACHE_NAME = 'transporte-medeiros-v3';
 const APP_SHELL = [
   './',
   './index.html',
