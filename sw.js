@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transporte-medeiros-v10';
+const CACHE_NAME = 'transporte-medeiros-v11';
 const APP_SHELL = [
   './',
   './index.html',
@@ -49,12 +49,10 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
-  if (
-    url.hostname.includes('project-osrm.org') ||
-    url.hostname.includes('nominatim.openstreetmap.org') ||
-    url.hostname.includes('viacep.com.br')
-  ) {
-    event.respondWith(fetch(req));
+  // Never intercept external API calls (Photon, Nominatim, OSRM, ViaCEP, BrasilAPI, etc.)
+  const isSameOrigin = url.origin === self.location.origin;
+  const isJsDelivr = url.hostname.includes('cdn.jsdelivr.net');
+  if (!isSameOrigin && !isJsDelivr) {
     return;
   }
 
@@ -75,11 +73,7 @@ self.addEventListener('fetch', (event) => {
     caches.match(req).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((res) => {
-        if (
-          res &&
-          res.status === 200 &&
-          (url.origin === self.location.origin || url.hostname.includes('cdn.jsdelivr.net'))
-        ) {
+        if (res && res.status === 200 && (isSameOrigin || isJsDelivr)) {
           const clone = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
         }
