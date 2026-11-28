@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transporte-medeiros-v9';
+const CACHE_NAME = 'transporte-medeiros-v10';
 const APP_SHELL = [
   './',
   './index.html',
@@ -51,7 +51,8 @@ self.addEventListener('fetch', (event) => {
 
   if (
     url.hostname.includes('project-osrm.org') ||
-    url.hostname.includes('nominatim.openstreetmap.org')
+    url.hostname.includes('nominatim.openstreetmap.org') ||
+    url.hostname.includes('viacep.com.br')
   ) {
     event.respondWith(fetch(req));
     return;
