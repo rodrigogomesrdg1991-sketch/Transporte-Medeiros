@@ -1206,6 +1206,104 @@
       .finance-val { font-size: 0.84rem; }
     }
 
+    /* Address Autocomplete & City/UF Selector */
+    .addr-lookup-wrap {
+      position: relative;
+    }
+    .addr-input-row {
+      display: flex;
+      align-items: stretch;
+      gap: 7px;
+    }
+    .addr-input-row input {
+      flex: 1;
+      min-width: 0;
+    }
+    .btn-lookup {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--blue-100);
+      background: var(--blue-50);
+      color: var(--blue-700);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .btn-lookup:hover { background: var(--blue-100); }
+    .btn-lookup:active { transform: scale(0.97); }
+    .btn-lookup:disabled { opacity: 0.6; cursor: wait; }
+
+    .addr-suggest {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 5px);
+      z-index: 70;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .addr-suggest.open { display: block; }
+    .addr-suggest-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      padding: 10px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.12s ease;
+    }
+    .addr-suggest-item:last-child { border-bottom: 0; }
+    .addr-suggest-item:hover { background: var(--blue-50); }
+    .addr-suggest-title {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--blue-950);
+      line-height: 1.25;
+    }
+    .addr-suggest-sub {
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.25;
+    }
+    .addr-status {
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-top: 5px;
+      min-height: 1em;
+    }
+    .addr-status.ok { color: var(--success); font-weight: 600; }
+    .addr-status.warn { color: var(--warn-text); font-weight: 600; }
+
+    .field-city-uf {
+      display: grid;
+      grid-template-columns: 1fr 104px;
+      gap: 9px;
+    }
+    .city-chip.chip-other {
+      border-style: dashed;
+    }
+    .city-chip.chip-other.selected {
+      border-style: solid;
+    }
+
     .spinner {
       width: 16px;
       height: 16px;
@@ -1517,14 +1615,61 @@
           <input id="cfgBaseName" type="text" placeholder="Ex.: Garagem Transporte Medeiros" />
         </div>
 
+        <div class="field addr-lookup-wrap">
+          <label for="cfgBaseAddress">Endereço Completo da Base ou CEP (puxa cidade e estado)</label>
+          <div class="addr-input-row">
+            <input id="cfgBaseAddress" type="text" autocomplete="off" placeholder="Ex.: Rua Ilda Tavares da Costa, 560, Matão - SP" oninput="onAddressInput('cfg')" onblur="onAddressBlur('cfg')" />
+            <button type="button" id="btnLookupCfg" class="btn-lookup" onclick="lookupAddress('cfg', true)" title="Buscar endereço e preencher cidade/estado">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Buscar
+            </button>
+          </div>
+          <div id="cfgAddrSuggest" class="addr-suggest"></div>
+          <div id="cfgAddrStatus" class="addr-status">Digite rua + número + cidade ou CEP para detectar automaticamente.</div>
+        </div>
+
         <div class="field">
           <label>Cidade da Base (toque rápido)</label>
           <div id="cfgCityChips" class="city-chips"></div>
         </div>
 
-        <div class="field">
-          <label for="cfgBaseAddress">Endereço Completo da Base (opcional)</label>
-          <input id="cfgBaseAddress" type="text" placeholder="Rua, número e bairro..." />
+        <div class="field-city-uf">
+          <div class="field">
+            <label for="cfgBaseCity">Cidade</label>
+            <input id="cfgBaseCity" type="text" placeholder="Ex.: Matão" oninput="onCityManualInput('cfg')" />
+          </div>
+          <div class="field">
+            <label for="cfgBaseState">Estado (UF)</label>
+            <select id="cfgBaseState" onchange="onStateChange('cfg')">
+              <option value="SP">SP</option>
+              <option value="AC">AC</option>
+              <option value="AL">AL</option>
+              <option value="AP">AP</option>
+              <option value="AM">AM</option>
+              <option value="BA">BA</option>
+              <option value="CE">CE</option>
+              <option value="DF">DF</option>
+              <option value="ES">ES</option>
+              <option value="GO">GO</option>
+              <option value="MA">MA</option>
+              <option value="MT">MT</option>
+              <option value="MS">MS</option>
+              <option value="MG">MG</option>
+              <option value="PA">PA</option>
+              <option value="PB">PB</option>
+              <option value="PR">PR</option>
+              <option value="PE">PE</option>
+              <option value="PI">PI</option>
+              <option value="RJ">RJ</option>
+              <option value="RN">RN</option>
+              <option value="RS">RS</option>
+              <option value="RO">RO</option>
+              <option value="RR">RR</option>
+              <option value="SC">SC</option>
+              <option value="SE">SE</option>
+              <option value="TO">TO</option>
+            </select>
+          </div>
         </div>
 
         <label class="checkbox-row" style="margin-bottom:16px;">
@@ -1645,20 +1790,62 @@
           </div>
         </div>
         <div class="field">
-          <label>Cidade (toque rápido)</label>
-          <div id="modalCityChips" class="city-chips"></div>
-        </div>
-        <div class="field">
-          <label for="inpStopCity">Ou digite outra cidade</label>
-          <input id="inpStopCity" type="text" placeholder="Ex.: Taquaritinga" />
-        </div>
-        <div class="field">
           <label for="inpStopName">Nome do Cliente / Local</label>
           <input id="inpStopName" type="text" placeholder="Ex.: Depósito Central / Mercado Silva" />
         </div>
+        <div class="field addr-lookup-wrap">
+          <label for="inpStopAddress">Endereço ou CEP (puxa cidade e estado)</label>
+          <div class="addr-input-row">
+            <input id="inpStopAddress" type="text" autocomplete="off" placeholder="Ex.: Av. Independência, 144, Ribeirão Preto - SP" oninput="onAddressInput('stop')" onblur="onAddressBlur('stop')" />
+            <button type="button" id="btnLookupStop" class="btn-lookup" onclick="lookupAddress('stop', true)" title="Buscar endereço e preencher cidade/estado">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Buscar
+            </button>
+          </div>
+          <div id="stopAddrSuggest" class="addr-suggest"></div>
+          <div id="stopAddrStatus" class="addr-status"></div>
+        </div>
         <div class="field">
-          <label for="inpStopAddress">Rua, Número e Bairro (opcional)</label>
-          <input id="inpStopAddress" type="text" placeholder="Ex.: Av. Francisco Junqueira, 1200" />
+          <label>Cidade (toque rápido)</label>
+          <div id="modalCityChips" class="city-chips"></div>
+        </div>
+        <div class="field-city-uf">
+          <div class="field">
+            <label for="inpStopCity">Cidade</label>
+            <input id="inpStopCity" type="text" placeholder="Ex.: Matão" oninput="onCityManualInput('stop')" />
+          </div>
+          <div class="field">
+            <label for="inpStopState">Estado (UF)</label>
+            <select id="inpStopState" onchange="onStateChange('stop')">
+              <option value="SP">SP</option>
+              <option value="AC">AC</option>
+              <option value="AL">AL</option>
+              <option value="AP">AP</option>
+              <option value="AM">AM</option>
+              <option value="BA">BA</option>
+              <option value="CE">CE</option>
+              <option value="DF">DF</option>
+              <option value="ES">ES</option>
+              <option value="GO">GO</option>
+              <option value="MA">MA</option>
+              <option value="MT">MT</option>
+              <option value="MS">MS</option>
+              <option value="MG">MG</option>
+              <option value="PA">PA</option>
+              <option value="PB">PB</option>
+              <option value="PR">PR</option>
+              <option value="PE">PE</option>
+              <option value="PI">PI</option>
+              <option value="RJ">RJ</option>
+              <option value="RN">RN</option>
+              <option value="RS">RS</option>
+              <option value="RO">RO</option>
+              <option value="RR">RR</option>
+              <option value="SC">SC</option>
+              <option value="SE">SE</option>
+              <option value="TO">TO</option>
+            </select>
+          </div>
         </div>
         <div class="field-row-2">
           <div class="field">
@@ -1705,20 +1892,62 @@
       </div>
       <input type="hidden" id="editClientId" />
       <div class="field">
-        <label>Cidade</label>
-        <div id="clientCityChips" class="city-chips"></div>
-      </div>
-      <div class="field">
-        <label for="cliCity">Cidade (texto)</label>
-        <input id="cliCity" type="text" placeholder="Ex.: Guariba" />
-      </div>
-      <div class="field">
         <label for="cliName">Nome do Cliente</label>
         <input id="cliName" type="text" placeholder="Ex.: Distribuidora São José" />
       </div>
+      <div class="field addr-lookup-wrap">
+        <label for="cliAddress">Endereço ou CEP (puxa cidade e estado)</label>
+        <div class="addr-input-row">
+          <input id="cliAddress" type="text" autocomplete="off" placeholder="Rua, número, bairro ou CEP..." oninput="onAddressInput('cli')" onblur="onAddressBlur('cli')" />
+          <button type="button" id="btnLookupCli" class="btn-lookup" onclick="lookupAddress('cli', true)" title="Buscar endereço e preencher cidade/estado">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Buscar
+          </button>
+        </div>
+        <div id="cliAddrSuggest" class="addr-suggest"></div>
+        <div id="cliAddrStatus" class="addr-status"></div>
+      </div>
       <div class="field">
-        <label for="cliAddress">Endereço</label>
-        <input id="cliAddress" type="text" placeholder="Rua, número e bairro" />
+        <label>Cidade (toque rápido)</label>
+        <div id="clientCityChips" class="city-chips"></div>
+      </div>
+      <div class="field-city-uf">
+        <div class="field">
+          <label for="cliCity">Cidade</label>
+          <input id="cliCity" type="text" placeholder="Ex.: Guariba" oninput="onCityManualInput('cli')" />
+        </div>
+        <div class="field">
+          <label for="cliState">Estado (UF)</label>
+          <select id="cliState" onchange="onStateChange('cli')">
+              <option value="SP">SP</option>
+              <option value="AC">AC</option>
+              <option value="AL">AL</option>
+              <option value="AP">AP</option>
+              <option value="AM">AM</option>
+              <option value="BA">BA</option>
+              <option value="CE">CE</option>
+              <option value="DF">DF</option>
+              <option value="ES">ES</option>
+              <option value="GO">GO</option>
+              <option value="MA">MA</option>
+              <option value="MT">MT</option>
+              <option value="MS">MS</option>
+              <option value="MG">MG</option>
+              <option value="PA">PA</option>
+              <option value="PB">PB</option>
+              <option value="PR">PR</option>
+              <option value="PE">PE</option>
+              <option value="PI">PI</option>
+              <option value="RJ">RJ</option>
+              <option value="RN">RN</option>
+              <option value="RS">RS</option>
+              <option value="RO">RO</option>
+              <option value="RR">RR</option>
+              <option value="SC">SC</option>
+              <option value="SE">SE</option>
+              <option value="TO">TO</option>
+          </select>
+        </div>
       </div>
       <div class="field-row-2">
         <div class="field">
@@ -1766,6 +1995,45 @@
     };
     const CITY_LIST = Object.keys(CITIES);
 
+    const EXTRA_CITIES = {
+      'Matão':            { lat: -21.6033, lng: -48.3658, uf: 'SP' },
+      'Araraquara':       { lat: -21.7946, lng: -48.1766, uf: 'SP' },
+      'São Carlos':       { lat: -22.0087, lng: -47.8909, uf: 'SP' },
+      'Sertãozinho':      { lat: -21.1378, lng: -47.9903, uf: 'SP' },
+      'Bebedouro':        { lat: -20.9494, lng: -48.4783, uf: 'SP' },
+      'Catanduva':        { lat: -21.1378, lng: -48.9728, uf: 'SP' },
+      'Barretos':         { lat: -20.5571, lng: -48.5678, uf: 'SP' },
+      'Franca':           { lat: -20.5386, lng: -47.4008, uf: 'SP' },
+      'Dobrada':          { lat: -21.5150, lng: -48.3931, uf: 'SP' },
+      'Santa Ernestina':  { lat: -21.4628, lng: -48.3911, uf: 'SP' },
+      'Motuca':           { lat: -21.5083, lng: -48.1511, uf: 'SP' },
+      'Pitangueiras':     { lat: -21.0108, lng: -48.2219, uf: 'SP' },
+      'Pontal':           { lat: -21.0225, lng: -48.0372, uf: 'SP' },
+      'Cravinhos':        { lat: -21.3400, lng: -47.7294, uf: 'SP' },
+      'Serrana':          { lat: -21.2114, lng: -47.5956, uf: 'SP' },
+      'Jardinópolis':     { lat: -21.0181, lng: -47.7639, uf: 'SP' },
+      'Batatais':         { lat: -20.8911, lng: -47.5850, uf: 'SP' },
+      'Campinas':         { lat: -22.9056, lng: -47.0608, uf: 'SP' },
+      'São José do Rio Preto': { lat: -20.8197, lng: -49.3794, uf: 'SP' },
+      'São Paulo':        { lat: -23.5505, lng: -46.6333, uf: 'SP' }
+    };
+
+    const BR_STATES = {
+      AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia',
+      CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo', GO: 'Goiás',
+      MA: 'Maranhão', MT: 'Mato Grosso', MS: 'Mato Grosso do Sul', MG: 'Minas Gerais',
+      PA: 'Pará', PB: 'Paraíba', PR: 'Paraná', PE: 'Pernambuco', PI: 'Piauí',
+      RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RS: 'Rio Grande do Sul',
+      RO: 'Rondônia', RR: 'Roraima', SC: 'Santa Catarina', SP: 'São Paulo',
+      SE: 'Sergipe', TO: 'Tocantins'
+    };
+
+    const BR_STATE_BY_NAME = {};
+    Object.keys(BR_STATES).forEach(uf => {
+      const norm = BR_STATES[uf].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      BR_STATE_BY_NAME[norm] = uf;
+    });
+
     const STORAGE_KEYS = {
       stops: 'tm_stops_v1',
       clients: 'tm_clients_v1',
@@ -1784,6 +2052,7 @@
     const DEFAULT_SETTINGS = {
       baseName: 'Base — Ribeirão Preto',
       baseCity: 'Ribeirão Preto',
+      baseState: 'SP',
       baseAddress: 'Centro, Ribeirão Preto - SP',
       baseLat: CITIES['Ribeirão Preto'].lat,
       baseLng: CITIES['Ribeirão Preto'].lng,
@@ -1849,6 +2118,7 @@
     } else {
       stops = stops.map(s => ({
         ...s,
+        state: (s.state || 'SP').toUpperCase(),
         type: s.type === 'coleta' ? 'coleta' : 'entrega',
         freight: Number(s.freight) || 0,
         paid: !!s.paid,
@@ -2013,37 +2283,540 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    async function geocodeAddress(address, city) {
-      const cleanCity = (city || '').trim();
-      const query = address && address.trim()
-        ? `${address.trim()}, ${cleanCity}, São Paulo, Brasil`
-        : `${cleanCity}, São Paulo, Brasil`;
+    function normText(s) {
+      return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    }
 
-      try {
-        const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), 5000);
-        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(query)}`;
-        const res = await fetch(url, { signal: controller.signal, headers: { 'Accept-Language': 'pt-BR' } });
-        clearTimeout(tid);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.length > 0) {
-            return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    function matchQuickCity(cityName) {
+      const n = normText(cityName);
+      if (!n) return null;
+      for (const c of CITY_LIST) {
+        if (normText(c) === n) return c;
+      }
+      return null;
+    }
+
+    function formatCityUF(city, state) {
+      const c = (city || '').trim();
+      const uf = (state || 'SP').trim().toUpperCase();
+      if (!c) return uf;
+      return `${c} - ${uf}`;
+    }
+
+    function formatOriginLabel() {
+      if (settings.useGps) {
+        return `GPS Atual (${settings.baseLat.toFixed(4)}, ${settings.baseLng.toFixed(4)})`;
+      }
+      const cityUF = formatCityUF(settings.baseCity, settings.baseState);
+      const name = (settings.baseName || '').trim();
+      if (!name) return cityUF;
+      if (settings.baseCity && normText(name).includes(normText(settings.baseCity))) {
+        return name;
+      }
+      return `${name} (${cityUF})`;
+    }
+
+    function resolveStateUF(rawState, isoCode) {
+      if (isoCode && typeof isoCode === 'string') {
+        const m = isoCode.toUpperCase().match(/^BR-([A-Z]{2})$/);
+        if (m && BR_STATES[m[1]]) return m[1];
+      }
+      const s = String(rawState || '').trim();
+      if (!s) return '';
+      const up = s.toUpperCase();
+      if (BR_STATES[up]) return up;
+      const n = normText(s);
+      if (BR_STATE_BY_NAME[n]) return BR_STATE_BY_NAME[n];
+      return '';
+    }
+
+    function extractCityStateFromText(rawText) {
+      const text = String(rawText || '').trim();
+      if (!text) return { city: '', state: '' };
+      // Match patterns like ", Matão - SP", "- Matão / SP", ", Uberaba, MG"
+      const m = text.match(/(?:,|-)\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s'.]{1,42}?)\s*(?:-|\/|,|\s)\s*([A-Za-z]{2})(?:\s*,\s*Brasil)?\s*$/i);
+      if (m) {
+        const candUF = m[2].toUpperCase();
+        if (BR_STATES[candUF]) {
+          let candCity = m[1].trim().replace(/^(?:em|de)\s+/i, '');
+          // Avoid treating street numbers as city
+          if (candCity && !/^\d+$/.test(candCity)) {
+            return { city: candCity, state: candUF };
           }
         }
-      } catch (e) {}
-
-      if (CITIES[cleanCity]) {
-        return { lat: CITIES[cleanCity].lat, lng: CITIES[cleanCity].lng };
       }
-      const norm = cleanCity.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      for (const cName of CITY_LIST) {
-        const cn = cName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        if (cn === norm || cn.includes(norm) || norm.includes(cn)) {
-          return { lat: CITIES[cName].lat, lng: CITIES[cName].lng };
+      // Check if text mentions one of known cities explicitly after a comma/dash
+      const knownAll = [...CITY_LIST, ...Object.keys(EXTRA_CITIES)];
+      const nText = normText(text);
+      for (const kc of knownAll) {
+        const nkc = normText(kc);
+        const re = new RegExp(`(?:,|-)\\s*${nkc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:$|\\s|,|-|\\/)`);
+        if (re.test(nText)) {
+          const uf = (CITIES[kc] || EXTRA_CITIES[kc]).uf || 'SP';
+          return { city: kc, state: uf };
         }
       }
-      return { lat: CITIES['Ribeirão Preto'].lat, lng: CITIES['Ribeirão Preto'].lng };
+      return { city: '', state: '' };
+    }
+
+    function extractNominatimDetails(item) {
+      const a = item.address || {};
+      const detectedCity = (
+        a.city || a.town || a.municipality || a.village || a.city_district || ''
+      ).trim();
+      const detectedState = resolveStateUF(a.state, a['ISO3166-2-lvl4']);
+      const road = (a.road || a.pedestrian || a.residential || a.footway || '').trim();
+      const house = (a.house_number || '').trim();
+      const suburb = (a.suburb || a.neighbourhood || a.quarter || '').trim();
+      const streetParts = [];
+      if (road) streetParts.push(house ? `${road}, ${house}` : road);
+      if (suburb && normText(suburb) !== normText(detectedCity)) streetParts.push(suburb);
+      const shortStreet = streetParts.join(' - ');
+      return {
+        lat: parseFloat(item.lat),
+        lng: parseFloat(item.lon),
+        detectedCity,
+        detectedState,
+        shortStreet,
+        displayName: item.display_name || ''
+      };
+    }
+
+    async function queryNominatimRaw(query, limit = 1) {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 5500);
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=${limit}&countrycodes=br&q=${encodeURIComponent(query)}`;
+        const res = await fetch(url, { signal: controller.signal, headers: { 'Accept-Language': 'pt-BR' } });
+        clearTimeout(tid);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch (e) {
+        clearTimeout(tid);
+        return [];
+      }
+    }
+
+    async function queryViaCEP(cepDigits) {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 4500);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`, { signal: controller.signal });
+        clearTimeout(tid);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data || data.erro) return null;
+        return data;
+      } catch (e) {
+        clearTimeout(tid);
+        return null;
+      }
+    }
+
+    function lookupOfflineCityCoords(cityName) {
+      const n = normText(cityName);
+      if (!n) return null;
+      const allCities = { ...CITIES, ...EXTRA_CITIES };
+      for (const cName of Object.keys(allCities)) {
+        if (normText(cName) === n) return { ...allCities[cName], name: cName };
+      }
+      for (const cName of Object.keys(allCities)) {
+        const cn = normText(cName);
+        if (cn.includes(n) || n.includes(cn)) return { ...allCities[cName], name: cName };
+      }
+      return null;
+    }
+
+    async function geocodeAddress(address, city, state = 'SP') {
+      const cleanAddr = (address || '').trim();
+      const parsed = extractCityStateFromText(cleanAddr);
+      const effectiveCity = (parsed.city || city || '').trim();
+      const effectiveState = (parsed.state || state || 'SP').trim().toUpperCase();
+      const stateName = BR_STATES[effectiveState] || effectiveState || 'São Paulo';
+
+      // Check if address is a CEP
+      const cepMatch = cleanAddr.replace(/\D/g, '');
+      if (cepMatch.length === 8 && /^\d{5}-?\d{3}$/.test(cleanAddr)) {
+        const cepData = await queryViaCEP(cepMatch);
+        if (cepData) {
+          const streetStr = [cepData.logradouro, cepData.bairro].filter(Boolean).join(', ');
+          const cCity = cepData.localidade || effectiveCity;
+          const cUF = (cepData.uf || effectiveState || 'SP').toUpperCase();
+          const cStateName = BR_STATES[cUF] || cUF;
+          const qCep = streetStr ? `${streetStr}, ${cCity}, ${cStateName}, Brasil` : `${cCity}, ${cStateName}, Brasil`;
+          const hits = await queryNominatimRaw(qCep, 1);
+          if (hits.length > 0) {
+            const det = extractNominatimDetails(hits[0]);
+            return {
+              lat: det.lat,
+              lng: det.lng,
+              detectedCity: det.detectedCity || cCity,
+              detectedState: det.detectedState || cUF,
+              detectedStreet: streetStr,
+              found: true
+            };
+          }
+          const off = lookupOfflineCityCoords(cCity);
+          if (off) {
+            return { lat: off.lat, lng: off.lng, detectedCity: cCity, detectedState: cUF, detectedStreet: streetStr, found: true };
+          }
+        }
+      }
+
+      const attempts = [];
+      if (cleanAddr) {
+        // If the address already contains city/state, query it directly first so a stale city chip never hijacks it!
+        if (parsed.city || parsed.state) {
+          attempts.push(`${cleanAddr}, Brasil`);
+        }
+        if (effectiveCity && !normText(cleanAddr).includes(normText(effectiveCity))) {
+          attempts.push(`${cleanAddr}, ${effectiveCity}, ${stateName}, Brasil`);
+        }
+        const rawAttempt = `${cleanAddr}, Brasil`;
+        if (!attempts.includes(rawAttempt)) attempts.push(rawAttempt);
+      }
+      if (effectiveCity) {
+        attempts.push(`${effectiveCity}, ${stateName}, Brasil`);
+      }
+
+      for (const q of attempts) {
+        const hits = await queryNominatimRaw(q, 1);
+        if (hits.length > 0) {
+          const det = extractNominatimDetails(hits[0]);
+          return {
+            lat: det.lat,
+            lng: det.lng,
+            detectedCity: det.detectedCity || effectiveCity,
+            detectedState: det.detectedState || effectiveState,
+            found: true
+          };
+        }
+      }
+
+      const off = lookupOfflineCityCoords(effectiveCity);
+      if (off) {
+        return {
+          lat: off.lat,
+          lng: off.lng,
+          detectedCity: effectiveCity || off.name,
+          detectedState: effectiveState || off.uf || 'SP',
+          found: false
+        };
+      }
+      return {
+        lat: CITIES['Ribeirão Preto'].lat,
+        lng: CITIES['Ribeirão Preto'].lng,
+        detectedCity: effectiveCity || 'Ribeirão Preto',
+        detectedState: effectiveState || 'SP',
+        found: false
+      };
+    }
+
+    /* ========= ADDRESS AUTOCOMPLETE & "OUTROS" CITY SELECTOR ========= */
+    const SCOPE_META = {
+      cfg:  { addrId: 'cfgBaseAddress', cityId: 'cfgBaseCity', stateId: 'cfgBaseState', chipsId: 'cfgCityChips',   suggestId: 'cfgAddrSuggest',  statusId: 'cfgAddrStatus',  btnId: 'btnLookupCfg' },
+      stop: { addrId: 'inpStopAddress', cityId: 'inpStopCity', stateId: 'inpStopState', chipsId: 'modalCityChips', suggestId: 'stopAddrSuggest', statusId: 'stopAddrStatus', btnId: 'btnLookupStop' },
+      cli:  { addrId: 'cliAddress',     cityId: 'cliCity',     stateId: 'cliState',     chipsId: 'clientCityChips',suggestId: 'cliAddrSuggest',  statusId: 'cliAddrStatus',  btnId: 'btnLookupCli' }
+    };
+
+    const scopePinCache = { cfg: null, stop: null, cli: null };
+    const scopeSuggestItems = { cfg: [], stop: [], cli: [] };
+    const scopeForceOther = { cfg: false, stop: false, cli: false };
+    const scopeDebounce = { cfg: null, stop: null, cli: null };
+
+    function setScopeStatus(scope, text, tone = '') {
+      const el = document.getElementById(SCOPE_META[scope].statusId);
+      if (!el) return;
+      el.textContent = text || '';
+      el.className = 'addr-status' + (tone ? ' ' + tone : '');
+    }
+
+    function closeSuggestions(scope) {
+      const el = document.getElementById(SCOPE_META[scope].suggestId);
+      if (el) {
+        el.classList.remove('open');
+        el.innerHTML = '';
+      }
+      scopeSuggestItems[scope] = [];
+    }
+
+    function renderScopeCityChips(scope) {
+      const meta = SCOPE_META[scope];
+      const container = document.getElementById(meta.chipsId);
+      if (!container) return;
+      const currentCity = (document.getElementById(meta.cityId).value || '').trim();
+      const matched = scopeForceOther[scope] ? null : matchQuickCity(currentCity);
+      const isOther = scopeForceOther[scope] || !matched;
+
+      const quickHtml = CITY_LIST.map(c => `
+        <button type="button" class="city-chip ${matched === c ? 'selected' : ''}" onclick="pickScopeCity('${scope}', '${c}')">${c}</button>
+      `).join('');
+
+      const otherHtml = `
+        <button type="button" class="city-chip chip-other ${isOther ? 'selected' : ''}" onclick="pickScopeCity('${scope}', '__OTHER__')">Outros</button>
+      `;
+      container.innerHTML = quickHtml + otherHtml;
+    }
+
+    function pickScopeCity(scope, cityVal) {
+      const meta = SCOPE_META[scope];
+      const cityEl = document.getElementById(meta.cityId);
+      const stateEl = document.getElementById(meta.stateId);
+      scopePinCache[scope] = null;
+
+      if (cityVal === '__OTHER__') {
+        scopeForceOther[scope] = true;
+        if (matchQuickCity(cityEl.value)) {
+          cityEl.value = '';
+        }
+        renderScopeCityChips(scope);
+        cityEl.focus();
+        setScopeStatus(scope, 'Digite a cidade e o estado (ou busque pelo endereço acima).', '');
+        return;
+      }
+
+      scopeForceOther[scope] = false;
+      cityEl.value = cityVal;
+      stateEl.value = (CITIES[cityVal] && CITIES[cityVal].uf) || 'SP';
+      if (scope === 'cfg') {
+        const bn = document.getElementById('cfgBaseName');
+        if (bn && (!bn.value.trim() || bn.value.startsWith('Base —'))) {
+          bn.value = `Base — ${cityVal}`;
+        }
+      }
+      renderScopeCityChips(scope);
+    }
+
+    function onCityManualInput(scope) {
+      const meta = SCOPE_META[scope];
+      const val = (document.getElementById(meta.cityId).value || '').trim();
+      scopePinCache[scope] = null;
+      scopeForceOther[scope] = !matchQuickCity(val);
+      renderScopeCityChips(scope);
+    }
+
+    function onStateChange(scope) {
+      scopePinCache[scope] = null;
+      const meta = SCOPE_META[scope];
+      const st = document.getElementById(meta.stateId).value;
+      if (st !== 'SP') {
+        scopeForceOther[scope] = true;
+        renderScopeCityChips(scope);
+      }
+    }
+
+    function applyDetectedCityState(scope, city, state, pinCoords = null, formattedAddr = null) {
+      const meta = SCOPE_META[scope];
+      const cityEl = document.getElementById(meta.cityId);
+      const stateEl = document.getElementById(meta.stateId);
+      const addrEl = document.getElementById(meta.addrId);
+
+      if (formattedAddr && addrEl) {
+        addrEl.value = formattedAddr;
+      }
+
+      if (city) {
+        cityEl.value = city;
+        const qMatch = matchQuickCity(city);
+        const ufFinal = (state || (qMatch ? 'SP' : stateEl.value) || 'SP').toUpperCase();
+        if (BR_STATES[ufFinal]) stateEl.value = ufFinal;
+        scopeForceOther[scope] = !(qMatch && ufFinal === 'SP');
+        if (scope === 'cfg') {
+          const bn = document.getElementById('cfgBaseName');
+          if (bn && (!bn.value.trim() || bn.value.startsWith('Base —'))) {
+            bn.value = `Base — ${city}`;
+          }
+        }
+        renderScopeCityChips(scope);
+      } else if (state && BR_STATES[state.toUpperCase()]) {
+        stateEl.value = state.toUpperCase();
+      }
+
+      if (pinCoords && isFinite(pinCoords.lat) && isFinite(pinCoords.lng)) {
+        scopePinCache[scope] = {
+          lat: pinCoords.lat,
+          lng: pinCoords.lng,
+          addrSnapshot: (addrEl ? addrEl.value : '').trim(),
+          citySnapshot: (cityEl ? cityEl.value : '').trim(),
+          stateSnapshot: (stateEl ? stateEl.value : 'SP').trim()
+        };
+      }
+    }
+
+    function onAddressInput(scope) {
+      const meta = SCOPE_META[scope];
+      const raw = (document.getElementById(meta.addrId).value || '').trim();
+      scopePinCache[scope] = null;
+
+      // Immediate local parsing if user typed/pasted "..., Matão - SP"
+      const parsed = extractCityStateFromText(raw);
+      if (parsed.city) {
+        applyDetectedCityState(scope, parsed.city, parsed.state);
+        setScopeStatus(scope, `Detectado: ${formatCityUF(parsed.city, parsed.state)}`, 'ok');
+      } else if (!raw) {
+        setScopeStatus(scope, scope === 'cfg' ? 'Digite rua + número + cidade ou CEP para detectar automaticamente.' : '');
+        closeSuggestions(scope);
+        return;
+      }
+
+      clearTimeout(scopeDebounce[scope]);
+      const digits = raw.replace(/\D/g, '');
+      if (digits.length === 8 && /^\d{5}-?\d{3}$/.test(raw)) {
+        scopeDebounce[scope] = setTimeout(() => lookupAddress(scope, false), 250);
+      } else if (raw.length >= 6) {
+        scopeDebounce[scope] = setTimeout(() => lookupAddress(scope, false), 650);
+      } else {
+        closeSuggestions(scope);
+      }
+    }
+
+    function onAddressBlur(scope) {
+      setTimeout(() => {
+        const meta = SCOPE_META[scope];
+        const sugEl = document.getElementById(meta.suggestId);
+        if (sugEl && sugEl.classList.contains('open')) {
+          closeSuggestions(scope);
+        }
+      }, 220);
+    }
+
+    async function lookupAddress(scope, userClicked = false) {
+      const meta = SCOPE_META[scope];
+      const addrEl = document.getElementById(meta.addrId);
+      const cityEl = document.getElementById(meta.cityId);
+      const stateEl = document.getElementById(meta.stateId);
+      const btnEl = document.getElementById(meta.btnId);
+
+      const raw = (addrEl.value || '').trim();
+      if (!raw) {
+        if (userClicked) showToast('Digite um endereço ou CEP para buscar.');
+        return;
+      }
+
+      if (btnEl) btnEl.disabled = true;
+      setScopeStatus(scope, 'Buscando endereço, cidade e estado...', '');
+
+      try {
+        // 1. Check CEP first via ViaCEP
+        const cepDigits = raw.replace(/\D/g, '');
+        if (cepDigits.length === 8 && /^\d{5}-?\d{3}$/.test(raw)) {
+          const cepData = await queryViaCEP(cepDigits);
+          if (cepData) {
+            const street = [cepData.logradouro, cepData.bairro].filter(Boolean).join(', ');
+            const city = cepData.localidade || '';
+            const uf = (cepData.uf || 'SP').toUpperCase();
+            const geo = await geocodeAddress(street || city, city, uf);
+            applyDetectedCityState(scope, city, uf, { lat: geo.lat, lng: geo.lng }, street || raw);
+            closeSuggestions(scope);
+            setScopeStatus(scope, `CEP localizado: ${formatCityUF(city, uf)}`, 'ok');
+            if (userClicked) showToast(`Endereço preenchido: ${formatCityUF(city, uf)}`);
+            return;
+          }
+        }
+
+        // 2. Query Nominatim (if text already has city/state, search raw directly; else try raw + city bias)
+        const parsed = extractCityStateFromText(raw);
+        let hits = [];
+        if (parsed.city || parsed.state || raw.includes(',')) {
+          hits = await queryNominatimRaw(`${raw}, Brasil`, 5);
+        }
+        if (hits.length === 0) {
+          const curCity = (cityEl.value || '').trim();
+          const curUF = (stateEl.value || 'SP').trim();
+          const stName = BR_STATES[curUF] || curUF;
+          if (curCity && !normText(raw).includes(normText(curCity))) {
+            hits = await queryNominatimRaw(`${raw}, ${curCity}, ${stName}, Brasil`, 5);
+          }
+        }
+        if (hits.length === 0) {
+          hits = await queryNominatimRaw(`${raw}, Brasil`, 5);
+        }
+
+        if (hits.length === 0) {
+          closeSuggestions(scope);
+          if (parsed.city) {
+            applyDetectedCityState(scope, parsed.city, parsed.state);
+            setScopeStatus(scope, `Cidade preenchida: ${formatCityUF(parsed.city, parsed.state)} (endereço aproximado)`, 'warn');
+          } else {
+            setScopeStatus(scope, 'Endereço não encontrado no mapa. Confira rua/número ou informe a cidade abaixo.', 'warn');
+          }
+          return;
+        }
+
+        const parsedHits = hits.map(extractNominatimDetails);
+
+        // If user clicked Buscar and there's a clear top match (or single match), apply immediately!
+        if (userClicked && parsedHits.length === 1) {
+          selectAddressSuggestion(scope, 0, parsedHits);
+          return;
+        }
+
+        // Also auto-fill city/state from top hit if user clicked Buscar or if address clearly matches
+        scopeSuggestItems[scope] = parsedHits;
+        const sugEl = document.getElementById(meta.suggestId);
+        sugEl.innerHTML = parsedHits.map((h, i) => {
+          const title = h.shortStreet || h.detectedCity || h.displayName.split(',')[0];
+          const subCity = h.detectedCity ? formatCityUF(h.detectedCity, h.detectedState || 'SP') : h.displayName;
+          return `
+            <button type="button" class="addr-suggest-item" onmousedown="event.preventDefault(); selectAddressSuggestion('${scope}', ${i})">
+              <div class="addr-suggest-title">${escapeHtml(title)}</div>
+              <div class="addr-suggest-sub">${escapeHtml(subCity)}</div>
+            </button>
+          `;
+        }).join('');
+        sugEl.classList.add('open');
+
+        const top = parsedHits[0];
+        if (userClicked && top.detectedCity) {
+          applyDetectedCityState(scope, top.detectedCity, top.detectedState || 'SP', { lat: top.lat, lng: top.lng });
+          setScopeStatus(scope, `Detectado: ${formatCityUF(top.detectedCity, top.detectedState || 'SP')} — toque na opção exata abaixo se preferir.`, 'ok');
+        } else {
+          setScopeStatus(scope, 'Toque em uma sugestão abaixo para preencher cidade e estado.', '');
+        }
+      } finally {
+        if (btnEl) btnEl.disabled = false;
+      }
+    }
+
+    function selectAddressSuggestion(scope, idx, customList = null) {
+      const list = customList || scopeSuggestItems[scope] || [];
+      const item = list[idx];
+      if (!item) return;
+
+      const meta = SCOPE_META[scope];
+      const rawAddr = (document.getElementById(meta.addrId).value || '').trim();
+      // Preserve house number if user typed one and Nominatim omitted it
+      let finalStreet = item.shortStreet || rawAddr;
+      const numMatch = rawAddr.match(/,\s*(\d+[A-Za-z]?)(?:\s|,|$)/);
+      if (numMatch && finalStreet && !finalStreet.includes(numMatch[1])) {
+        const firstComma = finalStreet.indexOf(' - ');
+        if (firstComma > -1) {
+          finalStreet = `${finalStreet.slice(0, firstComma)}, ${numMatch[1]}${finalStreet.slice(firstComma)}`;
+        } else {
+          finalStreet = `${finalStreet}, ${numMatch[1]}`;
+        }
+      }
+
+      const city = item.detectedCity || '';
+      const uf = item.detectedState || 'SP';
+      applyDetectedCityState(scope, city, uf, { lat: item.lat, lng: item.lng }, finalStreet);
+      closeSuggestions(scope);
+      setScopeStatus(scope, `Endereço confirmado: ${formatCityUF(city, uf)}`, 'ok');
+      showToast(`Cidade e estado preenchidos: ${formatCityUF(city, uf)}`);
+    }
+
+    function getCachedPinIfValid(scope, addr, city, state) {
+      const cached = scopePinCache[scope];
+      if (!cached) return null;
+      if (
+        cached.addrSnapshot === (addr || '').trim() &&
+        cached.citySnapshot === (city || '').trim() &&
+        cached.stateSnapshot === (state || 'SP').trim()
+      ) {
+        return { lat: cached.lat, lng: cached.lng };
+      }
+      return null;
     }
 
     async function fetchOSRMMatrix(points) {
@@ -2247,11 +3020,25 @@
     }
 
     function formatMapsPlace(item) {
-      const parts = [];
-      if (item.address && item.address.trim()) parts.push(item.address.trim());
-      if (item.city && item.city.trim()) parts.push(item.city.trim());
-      parts.push('SP', 'Brasil');
-      if (parts.length > 2) return parts.join(', ');
+      const addr = (item.address || '').trim();
+      const city = (item.city || '').trim();
+      const state = (item.state || 'SP').trim().toUpperCase();
+      if (addr) {
+        const nAddr = normText(addr);
+        const parts = [addr];
+        if (city && !nAddr.includes(normText(city))) {
+          parts.push(city);
+        }
+        const ufRe = new RegExp(`(?:^|[\\s,\\-\\/])${state.toLowerCase()}(?:$|[\\s,])`);
+        if (state && !ufRe.test(nAddr)) {
+          parts.push(state);
+        }
+        if (!nAddr.includes('brasil') && !nAddr.includes('brazil')) {
+          parts.push('Brasil');
+        }
+        return parts.join(', ');
+      }
+      if (city) return `${city}, ${state}, Brasil`;
       return `${item.lat},${item.lng}`;
     }
 
@@ -2284,7 +3071,7 @@
       if (batchIndex === 0) {
         originParam = settings.useGps
           ? `${settings.baseLat},${settings.baseLng}`
-          : formatMapsPlace({ address: settings.baseAddress, city: settings.baseCity, lat: settings.baseLat, lng: settings.baseLng });
+          : formatMapsPlace({ address: settings.baseAddress, city: settings.baseCity, state: settings.baseState || 'SP', lat: settings.baseLat, lng: settings.baseLng });
       } else {
         const prevBatch = batches[batchIndex - 1];
         originParam = formatMapsPlace(prevBatch[prevBatch.length - 1]);
@@ -2298,7 +3085,7 @@
         waypoints.push(destination);
         destination = settings.useGps
           ? `${settings.baseLat},${settings.baseLng}`
-          : formatMapsPlace({ address: settings.baseAddress, city: settings.baseCity, lat: settings.baseLat, lng: settings.baseLng });
+          : formatMapsPlace({ address: settings.baseAddress, city: settings.baseCity, state: settings.baseState || 'SP', lat: settings.baseLat, lng: settings.baseLng });
       }
 
       let url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originParam)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
@@ -2334,7 +3121,8 @@
         const status = s.done ? '✅' : `${idx + 1}.`;
         const typeTag = getStopTypeLabel(s.type).toUpperCase();
         const leg = (!s.done && s.legKm != null) ? ` (${s.legKm} km / ~${s.legMin} min)` : '';
-        text += `\n${status} *${s.name}* [${typeTag}] — ${s.city}${leg}\n`;
+        const waCity = s.state && s.state !== 'SP' ? formatCityUF(s.city, s.state) : s.city;
+        text += `\n${status} *${s.name}* [${typeTag}] — ${waCity}${leg}\n`;
         if (s.address) text += `   📌 ${s.address}\n`;
         const freightTxt = s.freight > 0 ? formatCurrencyBR(s.freight) : 'A definir';
         const payTxt = s.paid ? `PAGO${s.paidAt ? ' às ' + s.paidAt : ''}` : 'PENDENTE';
@@ -2422,9 +3210,7 @@
         const doneCount = stops.filter(s => s.done).length;
         const totalCount = stops.length;
         const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
-        const originLabel = settings.useGps
-          ? `GPS (${settings.baseLat.toFixed(4)}, ${settings.baseLng.toFixed(4)})`
-          : `${settings.baseName} (${settings.baseCity})`;
+        const originLabel = formatOriginLabel();
 
         const drawWatermark = (isFirstPage) => {
           if (!fadedWm || !fadedWm.dataUrl) return;
@@ -2606,7 +3392,8 @@
 
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(8.0);
-          const cityLines = doc.splitTextToSize(s.city || '-', cols.cityAddr.w - 4);
+          const cityLabel = s.city ? (s.state && s.state !== 'SP' ? formatCityUF(s.city, s.state) : s.city) : '-';
+          const cityLines = doc.splitTextToSize(cityLabel, cols.cityAddr.w - 4);
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(7.3);
           const addrLines = s.address ? doc.splitTextToSize(s.address, cols.cityAddr.w - 4) : [];
@@ -3330,9 +4117,7 @@
 
     function renderRouteView() {
       renderTripPanel();
-      document.getElementById('originDisplay').textContent = settings.useGps
-        ? `GPS Atual (${settings.baseLat.toFixed(4)}, ${settings.baseLng.toFixed(4)})`
-        : `${settings.baseName} (${settings.baseCity})`;
+      document.getElementById('originDisplay').textContent = formatOriginLabel();
 
       const total = stops.length;
       const doneCount = stops.filter(s => s.done).length;
@@ -3427,7 +4212,7 @@
               <div class="stop-main">
                 <div class="stop-name-row">
                   <span class="stop-name">${escapeHtml(s.name)}</span>
-                  <span class="chip">${escapeHtml(s.city)}</span>
+                  <span class="chip">${escapeHtml(s.state && s.state !== 'SP' ? formatCityUF(s.city, s.state) : s.city)}</span>
                   ${typeChip}
                 </div>
                 ${s.address ? `<div class="stop-address">${escapeHtml(s.address)}</div>` : ''}
@@ -3544,18 +4329,6 @@
       showToast('Rota de teste carregada! Toque em Otimizar.');
     }
 
-    function renderCityChips(containerId, inputId, selectedCity) {
-      const el = document.getElementById(containerId);
-      el.innerHTML = CITY_LIST.map(c => `
-        <button type="button" class="city-chip ${c === selectedCity ? 'selected' : ''}" onclick="selectChip('${containerId}','${inputId}','${c}')">${c}</button>
-      `).join('');
-    }
-
-    function selectChip(containerId, inputId, cityName) {
-      if (inputId) document.getElementById(inputId).value = cityName;
-      renderCityChips(containerId, inputId, cityName);
-    }
-
     function openAddModal(tab = 'novo') {
       document.getElementById('addModal').classList.add('open');
       document.getElementById('addModalTitle').textContent = 'Adicionar Parada';
@@ -3566,12 +4339,17 @@
       setStopTypeUI('stop', 'entrega');
       setStopPayStatusUI('pendente');
       document.getElementById('inpStopCity').value = 'Taquaritinga';
+      document.getElementById('inpStopState').value = 'SP';
       document.getElementById('inpStopName').value = '';
       document.getElementById('inpStopAddress').value = '';
       document.getElementById('inpStopFreight').value = '';
       document.getElementById('inpStopObs').value = '';
       document.getElementById('inpSaveFixed').checked = false;
-      renderCityChips('modalCityChips', 'inpStopCity', 'Taquaritinga');
+      scopeForceOther.stop = false;
+      scopePinCache.stop = null;
+      closeSuggestions('stop');
+      setScopeStatus('stop', '');
+      renderScopeCityChips('stop');
       modalSelectedFixedIds.clear();
       switchModalTab(tab);
     }
@@ -3588,15 +4366,21 @@
       setStopTypeUI('stop', s.type || 'entrega');
       setStopPayStatusUI(s.paid ? 'pago' : 'pendente');
       document.getElementById('inpStopCity').value = s.city || '';
+      document.getElementById('inpStopState').value = (s.state || 'SP').toUpperCase();
       document.getElementById('inpStopName').value = s.name || '';
       document.getElementById('inpStopAddress').value = s.address || '';
       document.getElementById('inpStopFreight').value = formatCurrencyInput(s.freight);
       document.getElementById('inpStopObs').value = s.obs || '';
-      renderCityChips('modalCityChips', 'inpStopCity', s.city || '');
+      scopeForceOther.stop = !(matchQuickCity(s.city) && (s.state || 'SP') === 'SP');
+      scopePinCache.stop = null;
+      closeSuggestions('stop');
+      setScopeStatus('stop', '');
+      renderScopeCityChips('stop');
       switchModalTab('novo');
     }
 
     function closeAddModal() {
+      closeSuggestions('stop');
       document.getElementById('addModal').classList.remove('open');
     }
 
@@ -3611,36 +4395,45 @@
     async function addNewStop() {
       const editId = document.getElementById('editStopId').value;
       const type = document.getElementById('inpStopType').value === 'coleta' ? 'coleta' : 'entrega';
-      const city = document.getElementById('inpStopCity').value.trim();
+      let city = document.getElementById('inpStopCity').value.trim();
+      let state = (document.getElementById('inpStopState').value || 'SP').toUpperCase();
       const name = document.getElementById('inpStopName').value.trim();
-      const address = document.getElementById('inpStopAddress').value.trim();
+      let address = document.getElementById('inpStopAddress').value.trim();
       const freight = parseCurrencyBR(document.getElementById('inpStopFreight').value);
       const isPaid = document.getElementById('inpStopPayStatus').value === 'pago';
       const obs = document.getElementById('inpStopObs').value.trim();
       const saveFixed = document.getElementById('inpSaveFixed').checked;
 
-      if (!city) { showToast('Informe a cidade.'); return; }
-      const defaultPrefix = type === 'coleta' ? 'Coleta' : 'Entrega';
-      const finalName = name || (address ? address : `${defaultPrefix} em ${city}`);
+      if (!city && !address) { showToast('Informe o endereço ou a cidade.'); return; }
 
       const btn = document.getElementById('btnConfirmAddStop');
       btn.disabled = true;
       btn.innerHTML = `<span class="spinner"></span> ${editId ? 'Salvando...' : 'Localizando endereço...'}`;
 
       try {
+        const cachedPin = getCachedPinIfValid('stop', address, city, state);
         if (editId) {
           const idx = stops.findIndex(x => x.id === editId);
           if (idx > -1) {
             const old = stops[idx];
             let lat = old.lat;
             let lng = old.lng;
-            const addrChanged = (old.address || '') !== address || (old.city || '') !== city;
-            if (addrChanged) {
-              const coords = await geocodeAddress(address, city);
+            const addrChanged = (old.address || '') !== address || (old.city || '') !== city || (old.state || 'SP') !== state;
+            if (cachedPin) {
+              lat = cachedPin.lat;
+              lng = cachedPin.lng;
+              if (addrChanged) isOptimized = false;
+            } else if (addrChanged) {
+              const coords = await geocodeAddress(address, city, state);
               lat = coords.lat;
               lng = coords.lng;
+              if (coords.detectedCity) city = coords.detectedCity;
+              if (coords.detectedState) state = coords.detectedState;
+              if (coords.detectedStreet) address = coords.detectedStreet;
               isOptimized = false;
             }
+            const defaultPrefix = type === 'coleta' ? 'Coleta' : 'Entrega';
+            const finalName = name || (address ? address : `${defaultPrefix} em ${city}`);
             const paidAt = isPaid
               ? (old.paid && old.paidAt ? old.paidAt : new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))
               : null;
@@ -3648,7 +4441,8 @@
               ...old,
               name: finalName,
               type,
-              city,
+              city: city || old.city,
+              state: state || 'SP',
               address,
               freight,
               paid: isPaid,
@@ -3663,20 +4457,35 @@
           renderRouteView();
           showToast('Parada atualizada!');
         } else {
-          const coords = await geocodeAddress(address, city);
+          let lat, lng;
+          if (cachedPin) {
+            lat = cachedPin.lat;
+            lng = cachedPin.lng;
+          } else {
+            const coords = await geocodeAddress(address, city, state);
+            lat = coords.lat;
+            lng = coords.lng;
+            if (coords.detectedCity && (!city || address)) city = coords.detectedCity;
+            if (coords.detectedState && address) state = coords.detectedState;
+            if (coords.detectedStreet) address = coords.detectedStreet;
+          }
+          city = city || 'Ribeirão Preto';
+          const defaultPrefix = type === 'coleta' ? 'Coleta' : 'Entrega';
+          const finalName = name || (address ? address : `${defaultPrefix} em ${city}`);
           const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
           const newStop = {
             id: 's_' + Date.now(),
             name: finalName,
             type,
             city,
+            state,
             address,
             freight,
             paid: isPaid,
             paidAt: isPaid ? nowTime : null,
             obs,
-            lat: coords.lat,
-            lng: coords.lng,
+            lat,
+            lng,
             done: false,
             legKm: null,
             legMin: null
@@ -3690,18 +4499,19 @@
               name: finalName,
               type,
               city,
+              state,
               address,
               freight,
               obs,
-              lat: coords.lat,
-              lng: coords.lng
+              lat,
+              lng
             });
           }
 
           saveState();
           closeAddModal();
           renderRouteView();
-          showToast(saveFixed ? 'Parada adicionada e salva nos Fixos!' : 'Parada adicionada à rota!');
+          showToast(saveFixed ? `Parada salva em ${formatCityUF(city, state)} e nos Fixos!` : `Parada adicionada (${formatCityUF(city, state)})!`);
         }
       } finally {
         btn.disabled = false;
@@ -3756,6 +4566,7 @@
             name: c.name,
             type: c.type === 'coleta' ? 'coleta' : 'entrega',
             city: c.city,
+            state: (c.state || 'SP').toUpperCase(),
             address: c.address,
             freight: Number(c.freight) || 0,
             paid: false,
@@ -3833,6 +4644,7 @@
             name: c.name,
             type: c.type === 'coleta' ? 'coleta' : 'entrega',
             city: c.city,
+            state: (c.state || 'SP').toUpperCase(),
             address: c.address,
             freight: Number(c.freight) || 0,
             paid: false,
@@ -3856,61 +4668,83 @@
 
     function openClientModal(editId = null) {
       document.getElementById('clientModal').classList.add('open');
+      scopePinCache.cli = null;
+      closeSuggestions('cli');
+      setScopeStatus('cli', '');
       if (editId) {
         const c = clients.find(x => x.id === editId);
         document.getElementById('clientModalTitle').textContent = 'Editar Cliente Fixo';
         document.getElementById('editClientId').value = c.id;
-        document.getElementById('cliCity').value = c.city;
-        document.getElementById('cliName').value = c.name;
+        document.getElementById('cliCity').value = c.city || '';
+        document.getElementById('cliState').value = (c.state || 'SP').toUpperCase();
+        document.getElementById('cliName').value = c.name || '';
         document.getElementById('cliAddress').value = c.address || '';
         document.getElementById('cliFreight').value = formatCurrencyInput(c.freight);
         document.getElementById('cliObs').value = c.obs || '';
         setStopTypeUI('cli', c.type || 'entrega');
-        renderCityChips('clientCityChips', 'cliCity', c.city);
+        scopeForceOther.cli = !(matchQuickCity(c.city) && (c.state || 'SP') === 'SP');
+        renderScopeCityChips('cli');
       } else {
         document.getElementById('clientModalTitle').textContent = 'Novo Cliente Fixo';
         document.getElementById('editClientId').value = '';
         document.getElementById('cliCity').value = 'Taquaritinga';
+        document.getElementById('cliState').value = 'SP';
         document.getElementById('cliName').value = '';
         document.getElementById('cliAddress').value = '';
         document.getElementById('cliFreight').value = '';
         document.getElementById('cliObs').value = '';
         setStopTypeUI('cli', 'entrega');
-        renderCityChips('clientCityChips', 'cliCity', 'Taquaritinga');
+        scopeForceOther.cli = false;
+        renderScopeCityChips('cli');
       }
     }
 
     function closeClientModal() {
+      closeSuggestions('cli');
       document.getElementById('clientModal').classList.remove('open');
     }
 
     async function saveClient() {
       const id = document.getElementById('editClientId').value;
-      const city = document.getElementById('cliCity').value.trim();
+      let city = document.getElementById('cliCity').value.trim();
+      let state = (document.getElementById('cliState').value || 'SP').toUpperCase();
       const name = document.getElementById('cliName').value.trim();
-      const address = document.getElementById('cliAddress').value.trim();
+      let address = document.getElementById('cliAddress').value.trim();
       const type = document.getElementById('cliType').value === 'coleta' ? 'coleta' : 'entrega';
       const freight = parseCurrencyBR(document.getElementById('cliFreight').value);
       const obs = document.getElementById('cliObs').value.trim();
 
-      if (!name || !city) { showToast('Informe nome e cidade.'); return; }
+      if (!name || (!city && !address)) { showToast('Informe nome e endereço ou cidade.'); return; }
 
       const btn = document.getElementById('btnSaveClient');
       btn.disabled = true;
       btn.innerHTML = `<span class="spinner"></span> Salvando...`;
 
       try {
-        const coords = await geocodeAddress(address, city);
+        const cachedPin = getCachedPinIfValid('cli', address, city, state);
+        let lat, lng;
+        if (cachedPin) {
+          lat = cachedPin.lat;
+          lng = cachedPin.lng;
+        } else {
+          const coords = await geocodeAddress(address, city, state);
+          lat = coords.lat;
+          lng = coords.lng;
+          if (coords.detectedCity && (!city || address)) city = coords.detectedCity;
+          if (coords.detectedState && address) state = coords.detectedState;
+          if (coords.detectedStreet) address = coords.detectedStreet;
+        }
+        city = city || 'Ribeirão Preto';
         if (id) {
           const idx = clients.findIndex(x => x.id === id);
-          if (idx > -1) clients[idx] = { ...clients[idx], name, type, city, address, freight, obs, lat: coords.lat, lng: coords.lng };
+          if (idx > -1) clients[idx] = { ...clients[idx], name, type, city, state, address, freight, obs, lat, lng };
         } else {
-          clients.unshift({ id: 'c_' + Date.now(), name, type, city, address, freight, obs, lat: coords.lat, lng: coords.lng });
+          clients.unshift({ id: 'c_' + Date.now(), name, type, city, state, address, freight, obs, lat, lng });
         }
         saveState();
         closeClientModal();
         renderClientsView();
-        showToast('Cliente fixo salvo!');
+        showToast(`Cliente salvo (${formatCityUF(city, state)})!`);
       } finally {
         btn.disabled = false;
         btn.textContent = 'Salvar Cliente Fixo';
@@ -3926,7 +4760,7 @@
       showToast('Cliente removido.');
     }
 
-    let selectedBaseCity = settings.baseCity;
+    /* Settings city/state handled by SCOPE_META['cfg'] */
 
     function renderWatermarkSettings() {
       const enabled = settings.pdfWatermarkEnabled !== false;
@@ -4009,48 +4843,61 @@
     }
 
     function renderSettingsView() {
-      selectedBaseCity = settings.baseCity;
+      const bCity = settings.baseCity || 'Ribeirão Preto';
+      const bState = (settings.baseState || 'SP').toUpperCase();
       document.getElementById('cfgBaseName').value = settings.baseName;
       document.getElementById('cfgBaseAddress').value = settings.baseAddress || '';
+      document.getElementById('cfgBaseCity').value = bCity;
+      document.getElementById('cfgBaseState').value = BR_STATES[bState] ? bState : 'SP';
       document.getElementById('cfgReturnBase').checked = !!settings.returnToBase;
       document.getElementById('cfgDriverName').value = settings.driverName || tripData.driverName || '';
       document.getElementById('cfgVehiclePlate').value = settings.vehiclePlate || tripData.vehiclePlate || '';
-      renderSettingsCityChips();
+      scopeForceOther.cfg = !(matchQuickCity(bCity) && bState === 'SP');
+      scopePinCache.cfg = null;
+      closeSuggestions('cfg');
+      setScopeStatus('cfg', 'Digite rua + número + cidade ou CEP para detectar automaticamente.');
+      renderScopeCityChips('cfg');
       renderWatermarkSettings();
     }
 
-    function renderSettingsCityChips() {
-      const el = document.getElementById('cfgCityChips');
-      el.innerHTML = CITY_LIST.map(c => `
-        <button type="button" class="city-chip ${c === selectedBaseCity ? 'selected' : ''}" onclick="pickBaseCity('${c}')">${c}</button>
-      `).join('');
-    }
-
-    function pickBaseCity(city) {
-      selectedBaseCity = city;
-      if (document.getElementById('cfgBaseName').value.startsWith('Base —')) {
-        document.getElementById('cfgBaseName').value = `Base — ${city}`;
-      }
-      renderSettingsCityChips();
-    }
-
     async function saveSettings() {
-      const baseName = document.getElementById('cfgBaseName').value.trim() || `Base — ${selectedBaseCity}`;
-      const baseAddress = document.getElementById('cfgBaseAddress').value.trim();
+      let baseAddress = document.getElementById('cfgBaseAddress').value.trim();
+      let baseCity = document.getElementById('cfgBaseCity').value.trim();
+      let baseState = (document.getElementById('cfgBaseState').value || 'SP').toUpperCase();
       const returnToBase = document.getElementById('cfgReturnBase').checked;
       const driverName = document.getElementById('cfgDriverName').value.trim();
       const vehiclePlate = document.getElementById('cfgVehiclePlate').value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
 
-      showToast('Atualizando configurações...');
-      const coords = await geocodeAddress(baseAddress, selectedBaseCity);
+      if (!baseCity && !baseAddress) {
+        showToast('Informe a cidade ou o endereço da base.');
+        return;
+      }
+
+      showToast('Localizando base e atualizando...');
+      const cachedPin = getCachedPinIfValid('cfg', baseAddress, baseCity, baseState);
+      let lat, lng;
+      if (cachedPin) {
+        lat = cachedPin.lat;
+        lng = cachedPin.lng;
+      } else {
+        const coords = await geocodeAddress(baseAddress, baseCity, baseState);
+        lat = coords.lat;
+        lng = coords.lng;
+        if (coords.detectedCity && (!baseCity || baseAddress)) baseCity = coords.detectedCity;
+        if (coords.detectedState && baseAddress) baseState = coords.detectedState;
+        if (coords.detectedStreet) baseAddress = coords.detectedStreet;
+      }
+      baseCity = baseCity || 'Ribeirão Preto';
+      const baseName = document.getElementById('cfgBaseName').value.trim() || `Base — ${baseCity}`;
 
       settings = {
         ...settings,
         baseName,
-        baseCity: selectedBaseCity,
+        baseCity,
+        baseState,
         baseAddress,
-        baseLat: coords.lat,
-        baseLng: coords.lng,
+        baseLat: lat,
+        baseLng: lng,
         useGps: false,
         returnToBase,
         driverName,
@@ -4061,7 +4908,7 @@
       isOptimized = false;
       saveState();
       switchView('rota');
-      showToast('Configurações salvas!');
+      showToast(`Base salva em ${formatCityUF(baseCity, baseState)}!`);
     }
 
     function escapeHtml(str) {
