@@ -64,6 +64,13 @@
       --maps-full-bg: #EFF6FF;
       --maps-full-border: #93C5FD;
       --maps-full-text: #1D4ED8;
+      --type-entrega-bg: #E0F2FE;
+      --type-entrega-text: #0369A1;
+      --type-entrega-border: #BAE6FD;
+      --type-coleta-bg: #F3E8FF;
+      --type-coleta-text: #7E22CE;
+      --type-coleta-border: #D8B4FE;
+      --coleta-accent: #9333EA;
       --radius-lg: 18px;
       --radius-md: 12px;
       --radius-sm: 9px;
@@ -108,6 +115,13 @@
       --maps-full-bg: rgba(37, 99, 235, 0.16);
       --maps-full-border: rgba(96, 165, 250, 0.45);
       --maps-full-text: #93C5FD;
+      --type-entrega-bg: rgba(14, 165, 233, 0.16);
+      --type-entrega-text: #38BDF8;
+      --type-entrega-border: rgba(56, 189, 248, 0.35);
+      --type-coleta-bg: rgba(168, 85, 247, 0.18);
+      --type-coleta-text: #C084FC;
+      --type-coleta-border: rgba(192, 132, 252, 0.38);
+      --coleta-accent: #A855F7;
       --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.28);
       --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.42);
     }
@@ -1019,6 +1033,179 @@
       background: #0F172A;
     }
 
+    /* Finance Summary & Stop Type / Freight Styles */
+    .finance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .finance-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 9px 10px;
+      min-width: 0;
+    }
+    .finance-item.fin-paid {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+    }
+    .finance-item.fin-pending {
+      background: var(--warn-bg);
+      border-color: var(--warn-border);
+    }
+    .finance-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .finance-item.fin-paid .finance-label { color: var(--success); }
+    .finance-item.fin-pending .finance-label { color: var(--warn-text); }
+    .finance-val {
+      font-size: 0.94rem;
+      font-weight: 800;
+      color: var(--blue-950);
+      margin-top: 2px;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .finance-item.fin-paid .finance-val { color: var(--success); }
+    .finance-item.fin-pending .finance-val { color: var(--warn-text); }
+
+    .stop-card.type-coleta:not(.done) {
+      border-left-color: var(--coleta-accent);
+    }
+    .stop-card.type-coleta:not(.done) .stop-badge {
+      background: var(--coleta-accent);
+    }
+
+    .chip-entrega {
+      background: var(--type-entrega-bg);
+      color: var(--type-entrega-text);
+      border-color: var(--type-entrega-border);
+    }
+    .chip-coleta {
+      background: var(--type-coleta-bg);
+      color: var(--type-coleta-text);
+      border-color: var(--type-coleta-border);
+    }
+    .chip-pay-paid {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: var(--success-border);
+    }
+    .chip-pay-pending {
+      background: var(--warn-bg);
+      color: var(--warn-text);
+      border-color: var(--warn-border);
+    }
+
+    .stop-finance {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 8px;
+      padding: 6px 9px;
+      border-radius: 9px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .stop-freight-val {
+      font-weight: 800;
+      color: var(--blue-950);
+      letter-spacing: -0.01em;
+    }
+    .stop-freight-empty {
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 2px;
+    }
+
+    .btn-pay {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: var(--success-border);
+    }
+    .btn-pay:hover {
+      filter: brightness(0.96);
+    }
+    .btn-paid {
+      background: var(--success);
+      color: #fff;
+      border-color: var(--success);
+    }
+    [data-theme="dark"] .btn-paid {
+      background: #059669;
+      border-color: #10B981;
+      color: #fff;
+    }
+
+    .seg-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+    .seg-btn {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.83rem;
+      font-weight: 700;
+      padding: 8px 10px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .seg-btn.active-entrega {
+      background: var(--type-entrega-bg);
+      color: var(--type-entrega-text);
+      border-color: var(--type-entrega-border);
+    }
+    .seg-btn.active-coleta {
+      background: var(--type-coleta-bg);
+      color: var(--type-coleta-text);
+      border-color: var(--type-coleta-border);
+    }
+    .seg-btn.active-pending {
+      background: var(--warn-bg);
+      color: var(--warn-text);
+      border-color: var(--warn-border);
+    }
+    .seg-btn.active-paid {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: var(--success-border);
+    }
+
+    .field-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 420px) {
+      .field-row-2 { grid-template-columns: 1fr; gap: 0; }
+      .finance-val { font-size: 0.84rem; }
+    }
+
     .spinner {
       width: 16px;
       height: 16px;
@@ -1121,6 +1308,21 @@
           <div class="stat-item">
             <div class="stat-label">Tempo Estrada</div>
             <div id="statTime" class="stat-val">--</div>
+          </div>
+        </div>
+
+        <div id="financeGrid" class="finance-grid" aria-label="Resumo financeiro de fretes">
+          <div class="finance-item">
+            <div class="finance-label">Total Fretes</div>
+            <div id="finTotal" class="finance-val">R$ 0,00</div>
+          </div>
+          <div class="finance-item fin-paid">
+            <div class="finance-label">Recebido</div>
+            <div id="finPaid" class="finance-val">R$ 0,00</div>
+          </div>
+          <div class="finance-item fin-pending">
+            <div class="finance-label">A Receber</div>
+            <div id="finPending" class="finance-val">R$ 0,00</div>
           </div>
         </div>
 
@@ -1422,16 +1624,26 @@
   <div id="addModal" class="modal-backdrop" onclick="if(event.target===this) closeAddModal()">
     <div class="modal">
       <div class="modal-head">
-        <h3>Adicionar Parada</h3>
+        <h3 id="addModalTitle">Adicionar Parada</h3>
         <button class="btn-icon" onclick="closeAddModal()" aria-label="Fechar">✕</button>
       </div>
 
-      <div class="tabs-pill">
+      <input type="hidden" id="editStopId" />
+
+      <div id="addModalTabs" class="tabs-pill">
         <button id="tabNovo" class="active" onclick="switchModalTab('novo')">Endereço Novo</button>
         <button id="tabFixos" onclick="switchModalTab('fixos')">Escolher dos Fixos</button>
       </div>
 
       <div id="modalTabNovo">
+        <div class="field">
+          <label>Tipo de Serviço</label>
+          <input type="hidden" id="inpStopType" value="entrega" />
+          <div class="seg-control">
+            <button type="button" id="btnTypeEntrega" class="seg-btn active-entrega" onclick="setStopTypeUI('stop', 'entrega')">📦 Entrega</button>
+            <button type="button" id="btnTypeColeta" class="seg-btn" onclick="setStopTypeUI('stop', 'coleta')">🚛 Coleta</button>
+          </div>
+        </div>
         <div class="field">
           <label>Cidade (toque rápido)</label>
           <div id="modalCityChips" class="city-chips"></div>
@@ -1448,11 +1660,25 @@
           <label for="inpStopAddress">Rua, Número e Bairro (opcional)</label>
           <input id="inpStopAddress" type="text" placeholder="Ex.: Av. Francisco Junqueira, 1200" />
         </div>
+        <div class="field-row-2">
+          <div class="field">
+            <label for="inpStopFreight">Valor do Frete (R$)</label>
+            <input id="inpStopFreight" type="text" inputmode="decimal" placeholder="Ex.: 150,00" onblur="formatMoneyInputEl(this)" />
+          </div>
+          <div class="field">
+            <label>Pagamento</label>
+            <input type="hidden" id="inpStopPayStatus" value="pendente" />
+            <div class="seg-control">
+              <button type="button" id="btnPayPending" class="seg-btn active-pending" onclick="setStopPayStatusUI('pendente')">⏳ Pendente</button>
+              <button type="button" id="btnPayPaid" class="seg-btn" onclick="setStopPayStatusUI('pago')">✓ Pago</button>
+            </div>
+          </div>
+        </div>
         <div class="field">
           <label for="inpStopObs">Observação (opcional)</label>
           <input id="inpStopObs" type="text" placeholder="Ex.: Descarregar até 15h / falar com João" />
         </div>
-        <label class="checkbox-row" style="margin-bottom:14px;">
+        <label id="saveFixedRow" class="checkbox-row" style="margin-bottom:14px;">
           <input id="inpSaveFixed" type="checkbox" />
           Salvar também nos Clientes Fixos
         </label>
@@ -1493,6 +1719,20 @@
       <div class="field">
         <label for="cliAddress">Endereço</label>
         <input id="cliAddress" type="text" placeholder="Rua, número e bairro" />
+      </div>
+      <div class="field-row-2">
+        <div class="field">
+          <label>Tipo Padrão</label>
+          <input type="hidden" id="cliType" value="entrega" />
+          <div class="seg-control">
+            <button type="button" id="btnCliTypeEntrega" class="seg-btn active-entrega" onclick="setStopTypeUI('cli', 'entrega')">📦 Entrega</button>
+            <button type="button" id="btnCliTypeColeta" class="seg-btn" onclick="setStopTypeUI('cli', 'coleta')">🚛 Coleta</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="cliFreight">Frete Padrão (R$)</label>
+          <input id="cliFreight" type="text" inputmode="decimal" placeholder="Ex.: 150,00" onblur="formatMoneyInputEl(this)" />
+        </div>
       </div>
       <div class="field">
         <label for="cliObs">Observação padrão (opcional)</label>
@@ -1566,11 +1806,11 @@
     };
 
     const DEFAULT_CLIENTS = [
-      { id: 'c1', name: 'Atacadão Taquaritinga', city: 'Taquaritinga', address: 'Av. Vicente José Parise, Centro', obs: 'Recebimento até 17h', lat: -21.4062, lng: -48.5055 },
-      { id: 'c2', name: 'Depósito Pradópolis', city: 'Pradópolis', address: 'Rua Sete de Setembro, Centro', obs: 'Portão lateral', lat: -21.3604, lng: -48.0650 },
-      { id: 'c3', name: 'Comercial Monte Alto', city: 'Monte Alto', address: 'Rua Nhonhô Livramento, Centro', obs: '', lat: -21.2615, lng: -48.4958 },
-      { id: 'c4', name: 'Distribuidora Guariba', city: 'Guariba', address: 'Av. Evaristo Vaz, Centro', obs: 'Ligar ao chegar', lat: -21.3609, lng: -48.2278 },
-      { id: 'c5', name: 'Mercado Jaboticabal', city: 'Jaboticabal', address: 'Av. Pintos, Centro', obs: 'Doca 2', lat: -21.2552, lng: -48.3216 }
+      { id: 'c1', name: 'Atacadão Taquaritinga', city: 'Taquaritinga', address: 'Av. Vicente José Parise, Centro', obs: 'Recebimento até 17h', type: 'entrega', freight: 180, lat: -21.4062, lng: -48.5055 },
+      { id: 'c2', name: 'Depósito Pradópolis', city: 'Pradópolis', address: 'Rua Sete de Setembro, Centro', obs: 'Portão lateral', type: 'coleta', freight: 120, lat: -21.3604, lng: -48.0650 },
+      { id: 'c3', name: 'Comercial Monte Alto', city: 'Monte Alto', address: 'Rua Nhonhô Livramento, Centro', obs: '', type: 'entrega', freight: 210, lat: -21.2615, lng: -48.4958 },
+      { id: 'c4', name: 'Distribuidora Guariba', city: 'Guariba', address: 'Av. Evaristo Vaz, Centro', obs: 'Ligar ao chegar', type: 'entrega', freight: 150, lat: -21.3609, lng: -48.2278 },
+      { id: 'c5', name: 'Mercado Jaboticabal', city: 'Jaboticabal', address: 'Av. Pintos, Centro', obs: 'Doca 2', type: 'entrega', freight: 160, lat: -21.2552, lng: -48.3216 }
     ];
 
     let settings = { ...DEFAULT_SETTINGS, ...loadJSON(STORAGE_KEYS.settings, DEFAULT_SETTINGS) };
@@ -1595,6 +1835,10 @@
         city: c.city,
         address: c.address,
         obs: c.obs,
+        type: c.type || 'entrega',
+        freight: Number(c.freight) || 0,
+        paid: false,
+        paidAt: null,
         lat: c.lat,
         lng: c.lng,
         done: false,
@@ -1602,6 +1846,121 @@
         legMin: null
       }));
       saveState();
+    } else {
+      stops = stops.map(s => ({
+        ...s,
+        type: s.type === 'coleta' ? 'coleta' : 'entrega',
+        freight: Number(s.freight) || 0,
+        paid: !!s.paid,
+        paidAt: s.paidAt || null
+      }));
+    }
+
+    /* ========= FREIGHT & SERVICE TYPE HELPERS ========= */
+    function parseCurrencyBR(val) {
+      if (typeof val === 'number') return isFinite(val) && val > 0 ? Math.round(val * 100) / 100 : 0;
+      const raw = String(val || '').replace(/R\$/gi, '').replace(/\s+/g, '').trim();
+      if (!raw) return 0;
+      let normalized = raw;
+      if (normalized.includes(',') && normalized.includes('.')) {
+        normalized = normalized.replace(/\./g, '').replace(',', '.');
+      } else if (normalized.includes(',')) {
+        normalized = normalized.replace(',', '.');
+      }
+      normalized = normalized.replace(/[^0-9.]/g, '');
+      const num = parseFloat(normalized);
+      return isFinite(num) && num > 0 ? Math.round(num * 100) / 100 : 0;
+    }
+
+    function formatCurrencyBR(num) {
+      const n = Number(num) || 0;
+      return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatCurrencyInput(num) {
+      const n = Number(num) || 0;
+      if (n <= 0) return '';
+      return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatMoneyInputEl(el) {
+      const v = parseCurrencyBR(el.value);
+      el.value = v > 0 ? formatCurrencyInput(v) : '';
+    }
+
+    function getStopTypeLabel(type) {
+      return type === 'coleta' ? 'Coleta' : 'Entrega';
+    }
+
+    function getFinancialSummary() {
+      let total = 0;
+      let paid = 0;
+      let pending = 0;
+      let paidCount = 0;
+      let pendingCount = 0;
+      let countWithFreight = 0;
+      stops.forEach(s => {
+        const val = Number(s.freight) || 0;
+        if (val > 0) {
+          countWithFreight++;
+          total += val;
+          if (s.paid) {
+            paid += val;
+            paidCount++;
+          } else {
+            pending += val;
+            pendingCount++;
+          }
+        } else if (s.paid) {
+          paidCount++;
+        } else {
+          pendingCount++;
+        }
+      });
+      return {
+        total: Math.round(total * 100) / 100,
+        paid: Math.round(paid * 100) / 100,
+        pending: Math.round(pending * 100) / 100,
+        paidCount,
+        pendingCount,
+        countWithFreight
+      };
+    }
+
+    function setStopTypeUI(scope, typeVal) {
+      const isColeta = typeVal === 'coleta';
+      if (scope === 'cli') {
+        document.getElementById('cliType').value = isColeta ? 'coleta' : 'entrega';
+        document.getElementById('btnCliTypeEntrega').className = 'seg-btn' + (!isColeta ? ' active-entrega' : '');
+        document.getElementById('btnCliTypeColeta').className = 'seg-btn' + (isColeta ? ' active-coleta' : '');
+      } else {
+        document.getElementById('inpStopType').value = isColeta ? 'coleta' : 'entrega';
+        document.getElementById('btnTypeEntrega').className = 'seg-btn' + (!isColeta ? ' active-entrega' : '');
+        document.getElementById('btnTypeColeta').className = 'seg-btn' + (isColeta ? ' active-coleta' : '');
+      }
+    }
+
+    function setStopPayStatusUI(statusVal) {
+      const isPaid = statusVal === 'pago';
+      document.getElementById('inpStopPayStatus').value = isPaid ? 'pago' : 'pendente';
+      document.getElementById('btnPayPending').className = 'seg-btn' + (!isPaid ? ' active-pending' : '');
+      document.getElementById('btnPayPaid').className = 'seg-btn' + (isPaid ? ' active-paid' : '');
+    }
+
+    function toggleStopPaid(id) {
+      const s = stops.find(x => x.id === id);
+      if (!s) return;
+      s.paid = !s.paid;
+      s.paidAt = s.paid
+        ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        : null;
+      saveState();
+      renderRouteView();
+      if (s.paid) {
+        showToast(s.freight > 0 ? `Frete de ${formatCurrencyBR(s.freight)} marcado como PAGO!` : 'Parada marcada como PAGA!');
+      } else {
+        showToast('Pagamento alterado para PENDENTE.');
+      }
     }
 
     function loadJSON(key, fallback) {
@@ -1955,6 +2314,7 @@
         return;
       }
       const today = new Date().toLocaleDateString('pt-BR');
+      const fin = getFinancialSummary();
       let text = `🚛 *Transporte Medeiros - Rota do Dia* (${today})\n`;
       if (tripData.driverName) text += `👤 *Motorista:* ${tripData.driverName}\n`;
       if (tripData.vehiclePlate) text += `🚚 *Placa:* ${tripData.vehiclePlate}\n`;
@@ -1966,12 +2326,19 @@
       if (routeMeta.distKm != null) {
         text += `🛣️ *Estimativa:* ${routeMeta.distKm} km • ${formatDuration(routeMeta.durationMin)}\n`;
       }
-      text += `\n*Sequência de entregas:*\n`;
+      if (fin.total > 0) {
+        text += `💰 *Fretes:* Total ${formatCurrencyBR(fin.total)} | ✅ Recebido: ${formatCurrencyBR(fin.paid)} | ⏳ A Receber: ${formatCurrencyBR(fin.pending)}\n`;
+      }
+      text += `\n*Sequência de paradas:*\n`;
       stops.forEach((s, idx) => {
         const status = s.done ? '✅' : `${idx + 1}.`;
+        const typeTag = getStopTypeLabel(s.type).toUpperCase();
         const leg = (!s.done && s.legKm != null) ? ` (${s.legKm} km / ~${s.legMin} min)` : '';
-        text += `\n${status} *${s.name}* — ${s.city}${leg}\n`;
+        text += `\n${status} *${s.name}* [${typeTag}] — ${s.city}${leg}\n`;
         if (s.address) text += `   📌 ${s.address}\n`;
+        const freightTxt = s.freight > 0 ? formatCurrencyBR(s.freight) : 'A definir';
+        const payTxt = s.paid ? `PAGO${s.paidAt ? ' às ' + s.paidAt : ''}` : 'PENDENTE';
+        text += `   💵 Frete: ${freightTxt} • ${s.paid ? '✅' : '⏳'} *${payTxt}*\n`;
         if (s.obs) text += `   📝 ${s.obs}\n`;
       });
 
@@ -2149,54 +2516,76 @@
         doc.text(originLines[0], margin + 4, y + 10);
         y += 17;
 
-        // 3 Summary KPI boxes
+        // 3 Summary KPI boxes (Operational)
         const kpiGap = 4;
         const kpiW = (contentW - kpiGap * 2) / 3;
+        const fin = getFinancialSummary();
         const kpis = [
-          { label: 'ENTREGAS REALIZADAS', value: `${doneCount} / ${totalCount} (${pct}%)` },
+          { label: 'PARADAS CONCLUÍDAS', value: `${doneCount} / ${totalCount} (${pct}%)` },
           { label: 'DISTÂNCIA ESTIMADA', value: routeMeta.distKm != null ? `${routeMeta.distKm} km` : 'Não calculada' },
           { label: 'TEMPO EM ESTRADA', value: routeMeta.durationMin != null ? formatDuration(routeMeta.durationMin) : 'Não calculado' }
         ];
         kpis.forEach((k, i) => {
           const x = margin + i * (kpiW + kpiGap);
-          drawSoftBox(x, y, kpiW, 16, 2.5, [248, 250, 252], [226, 232, 240]);
+          drawSoftBox(x, y, kpiW, 15, 2.5, [248, 250, 252], [226, 232, 240]);
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(7);
+          doc.setFontSize(6.8);
           doc.setTextColor(100, 116, 139);
-          doc.text(k.label, x + 3.5, y + 5.5);
-          doc.setFontSize(11);
+          doc.text(k.label, x + 3.5, y + 5.2);
+          doc.setFontSize(10.5);
           doc.setTextColor(15, 23, 42);
-          doc.text(k.value, x + 3.5, y + 12.2);
+          doc.text(k.value, x + 3.5, y + 11.6);
         });
-        y += 22;
+        y += 18.5;
+
+        // 3 Financial KPI boxes
+        const finKpis = [
+          { label: 'TOTAL EM FRETES', value: formatCurrencyBR(fin.total), fill: [248, 250, 252], stroke: [203, 213, 225], text: [15, 23, 42], lbl: [100, 116, 139] },
+          { label: 'VALOR RECEBIDO (PAGO)', value: formatCurrencyBR(fin.paid), fill: [236, 253, 245], stroke: [167, 243, 208], text: [5, 150, 105], lbl: [5, 150, 105] },
+          { label: 'VALOR A RECEBER', value: formatCurrencyBR(fin.pending), fill: [255, 251, 235], stroke: [253, 230, 138], text: [180, 83, 9], lbl: [180, 83, 9] }
+        ];
+        finKpis.forEach((fk, i) => {
+          const x = margin + i * (kpiW + kpiGap);
+          drawSoftBox(x, y, kpiW, 15, 2.5, fk.fill, fk.stroke);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(6.8);
+          doc.setTextColor(fk.lbl[0], fk.lbl[1], fk.lbl[2]);
+          doc.text(fk.label, x + 3.5, y + 5.2);
+          doc.setFontSize(10.5);
+          doc.setTextColor(fk.text[0], fk.text[1], fk.text[2]);
+          doc.text(fk.value, x + 3.5, y + 11.6);
+        });
+        y += 21;
 
         // Section heading
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10.5);
         doc.setTextColor(15, 23, 42);
-        doc.text('Sequência de Paradas', margin, y);
+        doc.text('Sequência de Paradas e Fretes', margin, y);
         y += 4;
 
-        // Table Header helper
+        // Table Header helper (sum = 182mm)
         const cols = {
-          num: { x: margin, w: 10 },
-          client: { x: margin + 10, w: 62 },
-          cityAddr: { x: margin + 72, w: 60 },
-          leg: { x: margin + 132, w: 24 },
-          status: { x: margin + 156, w: 26 }
+          num: { x: margin, w: 8 },
+          client: { x: margin + 8, w: 54 },
+          cityAddr: { x: margin + 62, w: 48 },
+          leg: { x: margin + 110, w: 20 },
+          freight: { x: margin + 130, w: 28 },
+          status: { x: margin + 158, w: 24 }
         };
 
         const drawTableHeader = (currY) => {
           doc.setFillColor(29, 78, 216);
           doc.roundedRect(margin, currY, contentW, 8, 1.5, 1.5, 'F');
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8);
+          doc.setFontSize(7.6);
           doc.setTextColor(255, 255, 255);
-          doc.text('#', cols.num.x + 3.5, currY + 5.4);
-          doc.text('Cliente / Observação', cols.client.x + 2, currY + 5.4);
+          doc.text('#', cols.num.x + 2.8, currY + 5.4);
+          doc.text('Cliente / Tipo / Obs.', cols.client.x + 2, currY + 5.4);
           doc.text('Cidade e Endereço', cols.cityAddr.x + 2, currY + 5.4);
-          doc.text('Trecho', cols.leg.x + 2, currY + 5.4);
-          doc.text('Status', cols.status.x + 2, currY + 5.4);
+          doc.text('Trecho', cols.leg.x + 1.5, currY + 5.4);
+          doc.text('Frete / Pagto', cols.freight.x + 1.5, currY + 5.4);
+          doc.text('Rota', cols.status.x + 2, currY + 5.4);
           return currY + 9.5;
         };
 
@@ -2204,24 +2593,27 @@
 
         // Render rows
         stops.forEach((s, idx) => {
+          const isColeta = s.type === 'coleta';
+          const typeLabel = getStopTypeLabel(s.type).toUpperCase();
+
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8.8);
+          doc.setFontSize(8.4);
           const nameLines = doc.splitTextToSize(s.name || 'Sem nome', cols.client.w - 4);
 
           doc.setFont('helvetica', 'normal');
-          doc.setFontSize(7.6);
+          doc.setFontSize(7.3);
           const obsLines = s.obs ? doc.splitTextToSize(`Obs.: ${s.obs}`, cols.client.w - 4) : [];
 
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8.2);
+          doc.setFontSize(8.0);
           const cityLines = doc.splitTextToSize(s.city || '-', cols.cityAddr.w - 4);
           doc.setFont('helvetica', 'normal');
-          doc.setFontSize(7.6);
+          doc.setFontSize(7.3);
           const addrLines = s.address ? doc.splitTextToSize(s.address, cols.cityAddr.w - 4) : [];
 
-          const leftH = nameLines.length * 4 + (obsLines.length ? obsLines.length * 3.5 + 1 : 0);
-          const midH = cityLines.length * 3.9 + (addrLines.length ? addrLines.length * 3.5 + 1 : 0);
-          const rowH = Math.max(11, Math.max(leftH, midH) + 5);
+          const leftH = nameLines.length * 3.8 + 4.8 + (obsLines.length ? obsLines.length * 3.3 + 0.8 : 0);
+          const midH = cityLines.length * 3.8 + (addrLines.length ? addrLines.length * 3.3 + 0.8 : 0);
+          const rowH = Math.max(13.5, Math.max(leftH, midH) + 4.5);
 
           // Page break check
           if (y + rowH > pageH - 22) {
@@ -2243,63 +2635,106 @@
 
           // # index
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8.5);
-          doc.setTextColor(37, 99, 235);
-          doc.text(String(idx + 1), cols.num.x + 3.5, y + 5.5);
+          doc.setFontSize(8.2);
+          doc.setTextColor(isColeta ? 147 : 37, isColeta ? 51 : 99, isColeta ? 234 : 235);
+          doc.text(String(idx + 1), cols.num.x + 2.8, y + 5.3);
 
-          // Client + obs
+          // Client + Type badge + obs
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8.8);
+          doc.setFontSize(8.4);
           doc.setTextColor(15, 23, 42);
-          doc.text(nameLines, cols.client.x + 2, y + 5.2);
+          doc.text(nameLines, cols.client.x + 2, y + 5.0);
+
+          const badgeY = y + 5.0 + nameLines.length * 3.8 - 2.3;
+          doc.setFillColor(isColeta ? 243 : 224, isColeta ? 232 : 242, isColeta ? 255 : 254);
+          doc.setDrawColor(isColeta ? 216 : 186, isColeta ? 180 : 230, isColeta ? 254 : 253);
+          doc.roundedRect(cols.client.x + 2, badgeY, 15.5, 4.2, 1, 1, 'FD');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(6.2);
+          doc.setTextColor(isColeta ? 126 : 3, isColeta ? 34 : 105, isColeta ? 206 : 161);
+          doc.text(typeLabel, cols.client.x + 9.75, badgeY + 3.0, { align: 'center' });
+
           if (obsLines.length) {
             doc.setFont('helvetica', 'normal');
-            doc.setFontSize(7.5);
+            doc.setFontSize(7.3);
             doc.setTextColor(100, 116, 139);
-            doc.text(obsLines, cols.client.x + 2, y + 5.2 + nameLines.length * 4 + 0.8);
+            doc.text(obsLines, cols.client.x + 2, badgeY + 7.2);
           }
 
           // City + Address
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8.2);
+          doc.setFontSize(8.0);
           doc.setTextColor(30, 58, 138);
-          doc.text(cityLines, cols.cityAddr.x + 2, y + 5.2);
+          doc.text(cityLines, cols.cityAddr.x + 2, y + 5.0);
           if (addrLines.length) {
             doc.setFont('helvetica', 'normal');
-            doc.setFontSize(7.6);
+            doc.setFontSize(7.3);
             doc.setTextColor(71, 85, 105);
-            doc.text(addrLines, cols.cityAddr.x + 2, y + 5.2 + cityLines.length * 3.9 + 0.6);
+            doc.text(addrLines, cols.cityAddr.x + 2, y + 5.0 + cityLines.length * 3.8 + 0.5);
           }
 
           // Leg
           doc.setFont('helvetica', 'normal');
-          doc.setFontSize(7.8);
+          doc.setFontSize(7.4);
           doc.setTextColor(71, 85, 105);
           if (s.legKm != null) {
-            doc.text(`${s.legKm} km`, cols.leg.x + 2, y + 5.2);
-            doc.text(`~${s.legMin} min`, cols.leg.x + 2, y + 9.0);
+            doc.text(`${s.legKm} km`, cols.leg.x + 1.5, y + 5.0);
+            doc.text(`~${s.legMin} min`, cols.leg.x + 1.5, y + 8.7);
           } else {
-            doc.text('--', cols.leg.x + 2, y + 5.5);
+            doc.text('--', cols.leg.x + 1.5, y + 5.3);
           }
 
-          // Status badge
-          const isDone = !!s.done;
-          doc.setFillColor(isDone ? 236 : 255, isDone ? 253 : 251, isDone ? 245 : 235);
-          doc.setDrawColor(isDone ? 167 : 253, isDone ? 243 : 230, isDone ? 208 : 138);
-          doc.roundedRect(cols.status.x + 1, y + 2.2, 24, 5.8, 1.5, 1.5, 'FD');
+          // Freight + Payment Status
+          const hasFreight = (Number(s.freight) || 0) > 0;
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(7.2);
-          doc.setTextColor(isDone ? 5 : 180, isDone ? 150 : 83, isDone ? 105 : 9);
-          doc.text(isDone ? 'Concluída' : 'Pendente', cols.status.x + 13, y + 6.1, { align: 'center' });
+          doc.setFontSize(8.0);
+          doc.setTextColor(hasFreight ? 15 : 148, hasFreight ? 23 : 163, hasFreight ? 42 : 184);
+          doc.text(hasFreight ? formatCurrencyBR(s.freight) : 'A definir', cols.freight.x + 1.5, y + 5.0);
+
+          const isPaid = !!s.paid;
+          doc.setFillColor(isPaid ? 236 : 255, isPaid ? 253 : 251, isPaid ? 245 : 235);
+          doc.setDrawColor(isPaid ? 167 : 253, isPaid ? 243 : 230, isPaid ? 208 : 138);
+          doc.roundedRect(cols.freight.x + 1.5, y + 6.6, 22, 4.6, 1.2, 1.2, 'FD');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(6.6);
+          doc.setTextColor(isPaid ? 5 : 180, isPaid ? 150 : 83, isPaid ? 105 : 9);
+          doc.text(isPaid ? (s.paidAt ? `Pago ${s.paidAt}` : 'Pago') : 'Pendente', cols.freight.x + 12.5, y + 9.8, { align: 'center' });
+
+          // Route Status badge
+          const isDone = !!s.done;
+          doc.setFillColor(isDone ? 236 : 241, isDone ? 253 : 245, isDone ? 245 : 249);
+          doc.setDrawColor(isDone ? 167 : 203, isDone ? 243 : 213, isDone ? 208 : 225);
+          doc.roundedRect(cols.status.x + 1, y + 2.4, 22, 5.4, 1.4, 1.4, 'FD');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(6.9);
+          doc.setTextColor(isDone ? 5 : 71, isDone ? 150 : 85, isDone ? 105 : 105);
+          doc.text(isDone ? 'Concluída' : 'Em aberto', cols.status.x + 12, y + 6.0, { align: 'center' });
           if (isDone && s.doneAt) {
             doc.setFont('helvetica', 'normal');
-            doc.setFontSize(6.8);
+            doc.setFontSize(6.5);
             doc.setTextColor(100, 116, 139);
-            doc.text(`às ${s.doneAt}`, cols.status.x + 13, y + 10.6, { align: 'center' });
+            doc.text(`às ${s.doneAt}`, cols.status.x + 12, y + 10.4, { align: 'center' });
           }
 
           y += rowH;
         });
+
+        // Table financial totals footer bar
+        if (y + 11 > pageH - 20) {
+          doc.addPage();
+          drawPageHeader(false);
+          y = 26;
+        }
+        drawSoftBox(margin, y + 2, contentW, 8.5, 1.5, [239, 246, 255], [191, 219, 254]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.0);
+        doc.setTextColor(30, 58, 138);
+        doc.text(`RESUMO DOS FRETES:  Total ${formatCurrencyBR(fin.total)}`, margin + 4, y + 7.5);
+        doc.setTextColor(5, 150, 105);
+        doc.text(`Recebido: ${formatCurrencyBR(fin.paid)}`, margin + 106, y + 7.5);
+        doc.setTextColor(180, 83, 9);
+        doc.text(`A Receber: ${formatCurrencyBR(fin.pending)}`, pageW - margin - 4, y + 7.5, { align: 'right' });
+        y += 10.5;
 
         // Conference / Driver / Vehicle / KM Inicial / KM Final / KM Rodado block
         const confBoxH = 36;
@@ -2542,15 +2977,23 @@
 
     function openPrintableRouteFallback(dateStr, timeStr, wmDataUrl) {
       const doneCount = stops.filter(s => s.done).length;
-      const rows = stops.map((s, idx) => `
+      const fin = getFinancialSummary();
+      const rows = stops.map((s, idx) => {
+        const isColeta = s.type === 'coleta';
+        const typeBadge = `<span style="display:inline-block;margin-top:2px;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;background:${isColeta ? '#F3E8FF' : '#E0F2FE'};color:${isColeta ? '#7E22CE' : '#0369A1'};">${getStopTypeLabel(s.type).toUpperCase()}</span>`;
+        const freightTxt = s.freight > 0 ? formatCurrencyBR(s.freight) : 'A definir';
+        const payBadge = `<span style="display:inline-block;margin-top:2px;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;background:${s.paid ? '#ECFDF5' : '#FFFBEB'};color:${s.paid ? '#059669' : '#B45309'};">${s.paid ? 'Pago' + (s.paidAt ? ' ' + escapeHtml(s.paidAt) : '') : 'Pendente'}</span>`;
+        return `
         <tr>
-          <td style="font-weight:700;color:#1D4ED8;">${idx + 1}</td>
-          <td><strong>${escapeHtml(s.name)}</strong>${s.obs ? `<br><small style="color:#64748B;">Obs.: ${escapeHtml(s.obs)}</small>` : ''}</td>
-          <td><strong>${escapeHtml(s.city)}</strong>${s.address ? `<br><small style="color:var(--obs-text);">${escapeHtml(s.address)}</small>` : ''}</td>
+          <td style="font-weight:700;color:${isColeta ? '#7E22CE' : '#1D4ED8'};">${idx + 1}</td>
+          <td><strong>${escapeHtml(s.name)}</strong><br>${typeBadge}${s.obs ? `<br><small style="color:#64748B;">Obs.: ${escapeHtml(s.obs)}</small>` : ''}</td>
+          <td><strong>${escapeHtml(s.city)}</strong>${s.address ? `<br><small style="color:#475569;">${escapeHtml(s.address)}</small>` : ''}</td>
           <td>${s.legKm != null ? `${s.legKm} km<br><small>~${s.legMin} min</small>` : '--'}</td>
-          <td style="font-weight:700;color:${s.done ? '#059669' : '#B45309'};">${s.done ? `Concluída${s.doneAt ? ' (' + escapeHtml(s.doneAt) + ')' : ''}` : 'Pendente'}</td>
+          <td><strong>${escapeHtml(freightTxt)}</strong><br>${payBadge}</td>
+          <td style="font-weight:700;color:${s.done ? '#059669' : '#475569'};">${s.done ? `Concluída${s.doneAt ? ' (' + escapeHtml(s.doneAt) + ')' : ''}` : 'Em aberto'}</td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
 
       const w = window.open('', '_blank');
       if (!w) {
@@ -2577,7 +3020,12 @@
           <div class="box"><strong>Entregas:</strong><br>${doneCount}/${stops.length} concluídas</div>
           <div class="box"><strong>Estimativa:</strong><br>${routeMeta.distKm != null ? routeMeta.distKm + ' km' : '--'} • ${routeMeta.durationMin != null ? formatDuration(routeMeta.durationMin) : '--'}</div>
         </div>
-        <table><thead><tr><th>#</th><th>Cliente</th><th>Cidade / Endereço</th><th>Trecho</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="meta">
+          <div class="box"><strong>Total em Fretes:</strong><br>${formatCurrencyBR(fin.total)}</div>
+          <div class="box" style="background:rgba(236,253,245,0.85);border-color:#A7F3D0;"><strong>Recebido (Pago):</strong><br><span style="color:#059669;font-weight:700;">${formatCurrencyBR(fin.paid)}</span></div>
+          <div class="box" style="background:rgba(255,251,235,0.85);border-color:#FDE68A;"><strong>A Receber (Pendente):</strong><br><span style="color:#B45309;font-weight:700;">${formatCurrencyBR(fin.pending)}</span></div>
+        </div>
+        <table><thead><tr><th>#</th><th>Cliente / Tipo</th><th>Cidade / Endereço</th><th>Trecho</th><th>Frete / Pagto</th><th>Rota</th></tr></thead><tbody>${rows}</tbody></table>
         <div class="meta" style="margin-top:16px;">
           <div class="box"><strong>Motorista:</strong><br>${escapeHtml(tripData.driverName || '_______________________')}</div>
           <div class="box"><strong>Placa do Veículo:</strong><br>${escapeHtml(tripData.vehiclePlate || (tripData.platePhoto ? 'Ver foto abaixo' : '_______________'))}</div>
@@ -2894,6 +3342,11 @@
       document.getElementById('statDist').textContent = routeMeta.distKm != null ? `${routeMeta.distKm} km` : '-- km';
       document.getElementById('statTime').textContent = routeMeta.durationMin != null ? formatDuration(routeMeta.durationMin) : '--';
 
+      const fin = getFinancialSummary();
+      document.getElementById('finTotal').textContent = formatCurrencyBR(fin.total);
+      document.getElementById('finPaid').textContent = formatCurrencyBR(fin.paid);
+      document.getElementById('finPending').textContent = formatCurrencyBR(fin.pending);
+
       const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
       document.getElementById('progressFill').style.width = `${pct}%`;
       document.getElementById('progressText').textContent = `${doneCount}/${total} concluídas`;
@@ -2951,22 +3404,38 @@
       listEl.innerHTML = stops.map((s, idx) => {
         if (!s.done) orderNum++;
         const badgeLabel = s.done ? '✓' : orderNum;
+        const isColeta = s.type === 'coleta';
+        const typeChip = isColeta
+          ? `<span class="chip chip-coleta">🚛 Coleta</span>`
+          : `<span class="chip chip-entrega">📦 Entrega</span>`;
+        const hasFreight = (Number(s.freight) || 0) > 0;
+        const freightHtml = hasFreight
+          ? `<span class="stop-freight-val">Frete: ${formatCurrencyBR(s.freight)}</span>`
+          : `<span class="stop-freight-empty" onclick="openEditStopModal('${s.id}')">Frete: informar valor</span>`;
+        const payChip = s.paid
+          ? `<span class="chip chip-pay-paid">✓ Pago${s.paidAt ? ' às ' + escapeHtml(s.paidAt) : ''}</span>`
+          : `<span class="chip chip-pay-pending">⏳ Pendente</span>`;
         const legHtml = (!s.done && s.legKm != null)
           ? `<div class="stop-leg">Trecho: ${s.legKm} km • ~${s.legMin} min</div>`
           : (s.done && s.doneAt ? `<div class="stop-leg" style="background:var(--success-bg);color:var(--success);">Concluída às ${escapeHtml(s.doneAt)}</div>` : '');
         const obsHtml = s.obs ? `<div class="stop-address" style="color:var(--obs-text);">📝 ${escapeHtml(s.obs)}</div>` : '';
 
         return `
-          <article class="stop-card ${s.done ? 'done' : ''}">
+          <article class="stop-card ${isColeta ? 'type-coleta' : ''} ${s.done ? 'done' : ''}">
             <div class="stop-top">
               <div class="stop-badge">${badgeLabel}</div>
               <div class="stop-main">
                 <div class="stop-name-row">
                   <span class="stop-name">${escapeHtml(s.name)}</span>
                   <span class="chip">${escapeHtml(s.city)}</span>
+                  ${typeChip}
                 </div>
                 ${s.address ? `<div class="stop-address">${escapeHtml(s.address)}</div>` : ''}
                 ${obsHtml}
+                <div class="stop-finance">
+                  ${freightHtml}
+                  ${payChip}
+                </div>
                 ${legHtml}
               </div>
             </div>
@@ -2979,8 +3448,12 @@
                 <button class="btn ${s.done ? 'btn-outline' : 'btn-secondary'} btn-sm" onclick="toggleStopDone('${s.id}')">
                   ${s.done ? 'Reabrir' : 'Concluir'}
                 </button>
+                <button class="btn ${s.paid ? 'btn-paid' : 'btn-pay'} btn-sm" onclick="toggleStopPaid('${s.id}')" title="${s.paid ? 'Toque para voltar a Pendente' : 'Marcar frete como Pago'}">
+                  ${s.paid ? '✓ Pago' : 'Marcar Pago'}
+                </button>
               </div>
               <div class="stop-actions-right">
+                <button class="btn-icon" onclick="openEditStopModal('${s.id}')" title="Editar parada / frete">✎</button>
                 <button class="btn-icon" onclick="moveStop(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Subir">↑</button>
                 <button class="btn-icon" onclick="moveStop(${idx}, 1)" ${idx === stops.length - 1 ? 'disabled' : ''} title="Descer">↓</button>
                 <button class="btn-icon" onclick="removeStop('${s.id}')" title="Remover" style="color:var(--danger);">✕</button>
@@ -3054,6 +3527,10 @@
         city: c.city,
         address: c.address,
         obs: c.obs,
+        type: c.type || 'entrega',
+        freight: Number(c.freight) || 0,
+        paid: false,
+        paidAt: null,
         lat: c.lat,
         lng: c.lng,
         done: false,
@@ -3081,14 +3558,42 @@
 
     function openAddModal(tab = 'novo') {
       document.getElementById('addModal').classList.add('open');
+      document.getElementById('addModalTitle').textContent = 'Adicionar Parada';
+      document.getElementById('editStopId').value = '';
+      document.getElementById('addModalTabs').style.display = 'grid';
+      document.getElementById('saveFixedRow').style.display = 'flex';
+      document.getElementById('btnConfirmAddStop').textContent = 'Adicionar à Rota';
+      setStopTypeUI('stop', 'entrega');
+      setStopPayStatusUI('pendente');
       document.getElementById('inpStopCity').value = 'Taquaritinga';
       document.getElementById('inpStopName').value = '';
       document.getElementById('inpStopAddress').value = '';
+      document.getElementById('inpStopFreight').value = '';
       document.getElementById('inpStopObs').value = '';
       document.getElementById('inpSaveFixed').checked = false;
       renderCityChips('modalCityChips', 'inpStopCity', 'Taquaritinga');
       modalSelectedFixedIds.clear();
       switchModalTab(tab);
+    }
+
+    function openEditStopModal(id) {
+      const s = stops.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('addModal').classList.add('open');
+      document.getElementById('addModalTitle').textContent = 'Editar Parada';
+      document.getElementById('editStopId').value = s.id;
+      document.getElementById('addModalTabs').style.display = 'none';
+      document.getElementById('saveFixedRow').style.display = 'none';
+      document.getElementById('btnConfirmAddStop').textContent = 'Salvar Alterações';
+      setStopTypeUI('stop', s.type || 'entrega');
+      setStopPayStatusUI(s.paid ? 'pago' : 'pendente');
+      document.getElementById('inpStopCity').value = s.city || '';
+      document.getElementById('inpStopName').value = s.name || '';
+      document.getElementById('inpStopAddress').value = s.address || '';
+      document.getElementById('inpStopFreight').value = formatCurrencyInput(s.freight);
+      document.getElementById('inpStopObs').value = s.obs || '';
+      renderCityChips('modalCityChips', 'inpStopCity', s.city || '');
+      switchModalTab('novo');
     }
 
     function closeAddModal() {
@@ -3104,55 +3609,103 @@
     }
 
     async function addNewStop() {
+      const editId = document.getElementById('editStopId').value;
+      const type = document.getElementById('inpStopType').value === 'coleta' ? 'coleta' : 'entrega';
       const city = document.getElementById('inpStopCity').value.trim();
       const name = document.getElementById('inpStopName').value.trim();
       const address = document.getElementById('inpStopAddress').value.trim();
+      const freight = parseCurrencyBR(document.getElementById('inpStopFreight').value);
+      const isPaid = document.getElementById('inpStopPayStatus').value === 'pago';
       const obs = document.getElementById('inpStopObs').value.trim();
       const saveFixed = document.getElementById('inpSaveFixed').checked;
 
       if (!city) { showToast('Informe a cidade.'); return; }
-      const finalName = name || (address ? address : `Entrega em ${city}`);
+      const defaultPrefix = type === 'coleta' ? 'Coleta' : 'Entrega';
+      const finalName = name || (address ? address : `${defaultPrefix} em ${city}`);
 
       const btn = document.getElementById('btnConfirmAddStop');
       btn.disabled = true;
-      btn.innerHTML = `<span class="spinner"></span> Localizando endereço...`;
+      btn.innerHTML = `<span class="spinner"></span> ${editId ? 'Salvando...' : 'Localizando endereço...'}`;
 
       try {
-        const coords = await geocodeAddress(address, city);
-        const newStop = {
-          id: 's_' + Date.now(),
-          name: finalName,
-          city,
-          address,
-          obs,
-          lat: coords.lat,
-          lng: coords.lng,
-          done: false,
-          legKm: null,
-          legMin: null
-        };
-        stops.unshift(newStop);
-        isOptimized = false;
-
-        if (saveFixed) {
-          clients.unshift({
-            id: 'c_' + Date.now(),
+        if (editId) {
+          const idx = stops.findIndex(x => x.id === editId);
+          if (idx > -1) {
+            const old = stops[idx];
+            let lat = old.lat;
+            let lng = old.lng;
+            const addrChanged = (old.address || '') !== address || (old.city || '') !== city;
+            if (addrChanged) {
+              const coords = await geocodeAddress(address, city);
+              lat = coords.lat;
+              lng = coords.lng;
+              isOptimized = false;
+            }
+            const paidAt = isPaid
+              ? (old.paid && old.paidAt ? old.paidAt : new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))
+              : null;
+            stops[idx] = {
+              ...old,
+              name: finalName,
+              type,
+              city,
+              address,
+              freight,
+              paid: isPaid,
+              paidAt,
+              obs,
+              lat,
+              lng
+            };
+          }
+          saveState();
+          closeAddModal();
+          renderRouteView();
+          showToast('Parada atualizada!');
+        } else {
+          const coords = await geocodeAddress(address, city);
+          const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          const newStop = {
+            id: 's_' + Date.now(),
             name: finalName,
+            type,
             city,
             address,
+            freight,
+            paid: isPaid,
+            paidAt: isPaid ? nowTime : null,
             obs,
             lat: coords.lat,
-            lng: coords.lng
-          });
-        }
+            lng: coords.lng,
+            done: false,
+            legKm: null,
+            legMin: null
+          };
+          stops.unshift(newStop);
+          isOptimized = false;
 
-        saveState();
-        closeAddModal();
-        renderRouteView();
-        showToast(saveFixed ? 'Parada adicionada e salva nos Fixos!' : 'Parada adicionada à rota!');
+          if (saveFixed) {
+            clients.unshift({
+              id: 'c_' + Date.now(),
+              name: finalName,
+              type,
+              city,
+              address,
+              freight,
+              obs,
+              lat: coords.lat,
+              lng: coords.lng
+            });
+          }
+
+          saveState();
+          closeAddModal();
+          renderRouteView();
+          showToast(saveFixed ? 'Parada adicionada e salva nos Fixos!' : 'Parada adicionada à rota!');
+        }
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Adicionar à Rota';
+        btn.textContent = editId ? 'Salvar Alterações' : 'Adicionar à Rota';
       }
     }
 
@@ -3174,8 +3727,8 @@
           <label class="client-item ${checked ? 'selected' : ''}">
             <input class="client-check" type="checkbox" ${checked ? 'checked' : ''} onchange="toggleModalFixed('${c.id}')" />
             <div style="flex:1;min-width:0;">
-              <div style="font-weight:700;font-size:0.9rem;">${escapeHtml(c.name)} <span class="chip">${escapeHtml(c.city)}</span></div>
-              <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">${escapeHtml(c.address || 'Centro')}</div>
+              <div style="font-weight:700;font-size:0.9rem;">${escapeHtml(c.name)} <span class="chip">${escapeHtml(c.city)}</span> <span class="chip ${c.type === 'coleta' ? 'chip-coleta' : 'chip-entrega'}">${getStopTypeLabel(c.type)}</span></div>
+              <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">${escapeHtml(c.address || 'Centro')}${Number(c.freight) > 0 ? ' • ' + formatCurrencyBR(c.freight) : ''}</div>
             </div>
           </label>
         `;
@@ -3201,8 +3754,12 @@
             id: 's_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
             clientId: c.id,
             name: c.name,
+            type: c.type === 'coleta' ? 'coleta' : 'entrega',
             city: c.city,
             address: c.address,
+            freight: Number(c.freight) || 0,
+            paid: false,
+            paidAt: null,
             obs: c.obs,
             lat: c.lat,
             lng: c.lng,
@@ -3245,9 +3802,9 @@
             <input class="client-check" type="checkbox" ${sel ? 'checked' : ''} onclick="event.stopPropagation(); toggleFixedSelection('${c.id}')" />
             <div style="flex:1;min-width:0;">
               <div style="font-weight:700;font-size:0.92rem;color:var(--blue-950);">
-                ${escapeHtml(c.name)} <span class="chip">${escapeHtml(c.city)}</span>
+                ${escapeHtml(c.name)} <span class="chip">${escapeHtml(c.city)}</span> <span class="chip ${c.type === 'coleta' ? 'chip-coleta' : 'chip-entrega'}">${getStopTypeLabel(c.type)}</span>
               </div>
-              <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">${escapeHtml(c.address || 'Sem rua informada')}</div>
+              <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">${escapeHtml(c.address || 'Sem rua informada')}${Number(c.freight) > 0 ? ' • <strong>' + formatCurrencyBR(c.freight) + '</strong>' : ''}</div>
               ${c.obs ? `<div style="font-size:0.75rem;color:var(--obs-text);margin-top:2px;">📝 ${escapeHtml(c.obs)}</div>` : ''}
             </div>
             <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
@@ -3274,8 +3831,12 @@
             id: 's_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
             clientId: c.id,
             name: c.name,
+            type: c.type === 'coleta' ? 'coleta' : 'entrega',
             city: c.city,
             address: c.address,
+            freight: Number(c.freight) || 0,
+            paid: false,
+            paidAt: null,
             obs: c.obs,
             lat: c.lat,
             lng: c.lng,
@@ -3302,7 +3863,9 @@
         document.getElementById('cliCity').value = c.city;
         document.getElementById('cliName').value = c.name;
         document.getElementById('cliAddress').value = c.address || '';
+        document.getElementById('cliFreight').value = formatCurrencyInput(c.freight);
         document.getElementById('cliObs').value = c.obs || '';
+        setStopTypeUI('cli', c.type || 'entrega');
         renderCityChips('clientCityChips', 'cliCity', c.city);
       } else {
         document.getElementById('clientModalTitle').textContent = 'Novo Cliente Fixo';
@@ -3310,7 +3873,9 @@
         document.getElementById('cliCity').value = 'Taquaritinga';
         document.getElementById('cliName').value = '';
         document.getElementById('cliAddress').value = '';
+        document.getElementById('cliFreight').value = '';
         document.getElementById('cliObs').value = '';
+        setStopTypeUI('cli', 'entrega');
         renderCityChips('clientCityChips', 'cliCity', 'Taquaritinga');
       }
     }
@@ -3324,6 +3889,8 @@
       const city = document.getElementById('cliCity').value.trim();
       const name = document.getElementById('cliName').value.trim();
       const address = document.getElementById('cliAddress').value.trim();
+      const type = document.getElementById('cliType').value === 'coleta' ? 'coleta' : 'entrega';
+      const freight = parseCurrencyBR(document.getElementById('cliFreight').value);
       const obs = document.getElementById('cliObs').value.trim();
 
       if (!name || !city) { showToast('Informe nome e cidade.'); return; }
@@ -3336,9 +3903,9 @@
         const coords = await geocodeAddress(address, city);
         if (id) {
           const idx = clients.findIndex(x => x.id === id);
-          if (idx > -1) clients[idx] = { ...clients[idx], name, city, address, obs, lat: coords.lat, lng: coords.lng };
+          if (idx > -1) clients[idx] = { ...clients[idx], name, type, city, address, freight, obs, lat: coords.lat, lng: coords.lng };
         } else {
-          clients.unshift({ id: 'c_' + Date.now(), name, city, address, obs, lat: coords.lat, lng: coords.lng });
+          clients.unshift({ id: 'c_' + Date.now(), name, type, city, address, freight, obs, lat: coords.lat, lng: coords.lng });
         }
         saveState();
         closeClientModal();
