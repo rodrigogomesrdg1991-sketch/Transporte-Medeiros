@@ -1618,7 +1618,7 @@
         <div class="field addr-lookup-wrap">
           <label for="cfgBaseAddress">Endereço Completo da Base ou CEP (puxa cidade e estado)</label>
           <div class="addr-input-row">
-            <input id="cfgBaseAddress" type="text" autocomplete="off" placeholder="Ex.: Rua Ilda Tavares da Costa, 560, Matão - SP" oninput="onAddressInput('cfg')" onblur="onAddressBlur('cfg')" />
+            <input id="cfgBaseAddress" type="text" autocomplete="off" placeholder="Ex.: Rua Ilda Tavares da Costa, 560, Matão - SP" oninput="onAddressInput('cfg')" onkeydown="onAddressKeydown(event, 'cfg')" onblur="onAddressBlur('cfg')" />
             <button type="button" id="btnLookupCfg" class="btn-lookup" onclick="lookupAddress('cfg', true)" title="Buscar endereço e preencher cidade/estado">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               Buscar
@@ -1796,7 +1796,7 @@
         <div class="field addr-lookup-wrap">
           <label for="inpStopAddress">Endereço ou CEP (puxa cidade e estado)</label>
           <div class="addr-input-row">
-            <input id="inpStopAddress" type="text" autocomplete="off" placeholder="Ex.: Av. Independência, 144, Ribeirão Preto - SP" oninput="onAddressInput('stop')" onblur="onAddressBlur('stop')" />
+            <input id="inpStopAddress" type="text" autocomplete="off" placeholder="Ex.: Av. Independência, 144, Ribeirão Preto - SP" oninput="onAddressInput('stop')" onkeydown="onAddressKeydown(event, 'stop')" onblur="onAddressBlur('stop')" />
             <button type="button" id="btnLookupStop" class="btn-lookup" onclick="lookupAddress('stop', true)" title="Buscar endereço e preencher cidade/estado">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               Buscar
@@ -1898,7 +1898,7 @@
       <div class="field addr-lookup-wrap">
         <label for="cliAddress">Endereço ou CEP (puxa cidade e estado)</label>
         <div class="addr-input-row">
-          <input id="cliAddress" type="text" autocomplete="off" placeholder="Rua, número, bairro ou CEP..." oninput="onAddressInput('cli')" onblur="onAddressBlur('cli')" />
+          <input id="cliAddress" type="text" autocomplete="off" placeholder="Rua, número, bairro ou CEP..." oninput="onAddressInput('cli')" onkeydown="onAddressKeydown(event, 'cli')" onblur="onAddressBlur('cli')" />
           <button type="button" id="btnLookupCli" class="btn-lookup" onclick="lookupAddress('cli', true)" title="Buscar endereço e preencher cidade/estado">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             Buscar
@@ -2359,6 +2359,39 @@
       return { city: '', state: '' };
     }
 
+    let nominatimBlockedUntil = 0;
+
+    function extractPhotonDetails(feature) {
+      const p = (feature && feature.properties) || {};
+      const coords = (feature && feature.geometry && feature.geometry.coordinates) || [];
+      const lng = parseFloat(coords[0]);
+      const lat = parseFloat(coords[1]);
+      const isPlace = ['city', 'town', 'municipality', 'village', 'hamlet'].includes(p.osm_value);
+      const detectedCity = (
+        p.city || p.town || p.municipality || (isPlace ? p.name : '') || p.county || ''
+      ).trim();
+      const detectedState = resolveStateUF(p.state, '');
+      const road = (p.street || (!isPlace && p.name ? p.name : '') || '').trim();
+      const house = (p.housenumber || '').trim();
+      const suburb = (p.district || p.locality || '').trim();
+      const streetParts = [];
+      if (road) streetParts.push(house ? `${road}, ${house}` : road);
+      if (suburb && normText(suburb) !== normText(detectedCity) && normText(suburb) !== normText(road)) {
+        streetParts.push(suburb);
+      }
+      const shortStreet = streetParts.join(' - ');
+      const displayParts = [shortStreet, detectedCity, detectedState].filter(Boolean);
+      return {
+        lat,
+        lng,
+        detectedCity,
+        detectedState,
+        shortStreet,
+        countrycode: (p.countrycode || '').toUpperCase(),
+        displayName: displayParts.join(', ')
+      };
+    }
+
     function extractNominatimDetails(item) {
       const a = item.address || {};
       const detectedCity = (
@@ -2378,40 +2411,111 @@
         detectedCity,
         detectedState,
         shortStreet,
+        countrycode: 'BR',
         displayName: item.display_name || ''
       };
     }
 
+    async function queryPhoton(query, limit = 5, externalSignal = null) {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 5500);
+      const onExtAbort = () => controller.abort();
+      if (externalSignal) {
+        if (externalSignal.aborted) { clearTimeout(tid); return { items: [], aborted: true, error: false }; }
+        externalSignal.addEventListener('abort', onExtAbort, { once: true });
+      }
+      try {
+        const biasLat = isFinite(settings.baseLat) ? settings.baseLat : -21.30;
+        const biasLng = isFinite(settings.baseLng) ? settings.baseLng : -48.20;
+        const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=${Math.max(limit * 2, 6)}&lat=${biasLat.toFixed(3)}&lon=${biasLng.toFixed(3)}`;
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(tid);
+        if (!res.ok) return { items: [], aborted: false, error: true };
+        const data = await res.json();
+        const features = Array.isArray(data && data.features) ? data.features : [];
+        const mapped = features
+          .map(extractPhotonDetails)
+          .filter(x => isFinite(x.lat) && isFinite(x.lng));
+        const brOnly = mapped.filter(x => !x.countrycode || x.countrycode === 'BR');
+        const finalList = (brOnly.length > 0 ? brOnly : mapped).slice(0, limit);
+        return { items: finalList, aborted: false, error: false };
+      } catch (e) {
+        clearTimeout(tid);
+        if (externalSignal && externalSignal.aborted) return { items: [], aborted: true, error: false };
+        return { items: [], aborted: false, error: true };
+      } finally {
+        if (externalSignal) externalSignal.removeEventListener('abort', onExtAbort);
+      }
+    }
+
     async function queryNominatimRaw(query, limit = 1) {
+      if (Date.now() < nominatimBlockedUntil) {
+        return { items: [], error: true, rateLimited: true };
+      }
       const controller = new AbortController();
       const tid = setTimeout(() => controller.abort(), 5500);
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=${limit}&countrycodes=br&q=${encodeURIComponent(query)}`;
-        const res = await fetch(url, { signal: controller.signal, headers: { 'Accept-Language': 'pt-BR' } });
+        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=${limit}&countrycodes=br&accept-language=pt-BR&q=${encodeURIComponent(query)}`;
+        const res = await fetch(url, { signal: controller.signal });
         clearTimeout(tid);
-        if (!res.ok) return [];
+        if (res.status === 429 || res.status === 403) {
+          nominatimBlockedUntil = Date.now() + 90000;
+          return { items: [], error: true, rateLimited: true };
+        }
+        if (!res.ok) return { items: [], error: true, rateLimited: false };
         const data = await res.json();
-        return Array.isArray(data) ? data : [];
+        const items = Array.isArray(data) ? data.map(extractNominatimDetails) : [];
+        return { items, error: false, rateLimited: false };
       } catch (e) {
         clearTimeout(tid);
-        return [];
+        // Network/CORS failure (often caused by Nominatim 429/403 without CORS headers)
+        nominatimBlockedUntil = Date.now() + 60000;
+        return { items: [], error: true, rateLimited: true };
       }
     }
 
     async function queryViaCEP(cepDigits) {
-      const controller = new AbortController();
-      const tid = setTimeout(() => controller.abort(), 4500);
-      try {
-        const res = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`, { signal: controller.signal });
-        clearTimeout(tid);
-        if (!res.ok) return null;
-        const data = await res.json();
-        if (!data || data.erro) return null;
-        return data;
-      } catch (e) {
-        clearTimeout(tid);
-        return null;
+      const tryUrl = async (url) => {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 4500);
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(tid);
+          if (!res.ok) return null;
+          return await res.json();
+        } catch (e) {
+          clearTimeout(tid);
+          return null;
+        }
+      };
+
+      const v = await tryUrl(`https://viacep.com.br/ws/${cepDigits}/json/`);
+      if (v && !v.erro) {
+        return {
+          logradouro: v.logradouro || '',
+          bairro: v.bairro || '',
+          localidade: v.localidade || '',
+          uf: (v.uf || '').toUpperCase(),
+          lat: null,
+          lng: null
+        };
       }
+
+      const b = await tryUrl(`https://brasilapi.com.br/api/cep/v2/${cepDigits}`);
+      if (b && b.city) {
+        const coords = b.location && b.location.coordinates;
+        const lat = coords && coords.latitude ? parseFloat(coords.latitude) : null;
+        const lng = coords && coords.longitude ? parseFloat(coords.longitude) : null;
+        return {
+          logradouro: b.street || '',
+          bairro: b.neighborhood || '',
+          localidade: b.city || '',
+          uf: (b.state || '').toUpperCase(),
+          lat: isFinite(lat) ? lat : null,
+          lng: isFinite(lng) ? lng : null
+        };
+      }
+      return null;
     }
 
     function lookupOfflineCityCoords(cityName) {
@@ -2435,7 +2539,7 @@
       const effectiveState = (parsed.state || state || 'SP').trim().toUpperCase();
       const stateName = BR_STATES[effectiveState] || effectiveState || 'São Paulo';
 
-      // Check if address is a CEP
+      // 1. Check if address is a CEP
       const cepMatch = cleanAddr.replace(/\D/g, '');
       if (cepMatch.length === 8 && /^\d{5}-?\d{3}$/.test(cleanAddr)) {
         const cepData = await queryViaCEP(cepMatch);
@@ -2444,10 +2548,32 @@
           const cCity = cepData.localidade || effectiveCity;
           const cUF = (cepData.uf || effectiveState || 'SP').toUpperCase();
           const cStateName = BR_STATES[cUF] || cUF;
+          if (isFinite(cepData.lat) && isFinite(cepData.lng) && cepData.lat !== null) {
+            return {
+              lat: cepData.lat,
+              lng: cepData.lng,
+              detectedCity: cCity,
+              detectedState: cUF,
+              detectedStreet: streetStr,
+              found: true
+            };
+          }
           const qCep = streetStr ? `${streetStr}, ${cCity}, ${cStateName}, Brasil` : `${cCity}, ${cStateName}, Brasil`;
-          const hits = await queryNominatimRaw(qCep, 1);
-          if (hits.length > 0) {
-            const det = extractNominatimDetails(hits[0]);
+          const phCep = await queryPhoton(qCep, 1);
+          if (phCep.items.length > 0) {
+            const det = phCep.items[0];
+            return {
+              lat: det.lat,
+              lng: det.lng,
+              detectedCity: det.detectedCity || cCity,
+              detectedState: det.detectedState || cUF,
+              detectedStreet: streetStr,
+              found: true
+            };
+          }
+          const nomCep = await queryNominatimRaw(qCep, 1);
+          if (nomCep.items.length > 0) {
+            const det = nomCep.items[0];
             return {
               lat: det.lat,
               lng: det.lng,
@@ -2464,26 +2590,29 @@
         }
       }
 
+      // 2. Build prioritized, de-duplicated search queries
       const attempts = [];
+      const addAttempt = (q) => {
+        if (q && !attempts.includes(q)) attempts.push(q);
+      };
       if (cleanAddr) {
-        // If the address already contains city/state, query it directly first so a stale city chip never hijacks it!
         if (parsed.city || parsed.state) {
-          attempts.push(`${cleanAddr}, Brasil`);
+          addAttempt(`${cleanAddr}, Brasil`);
         }
         if (effectiveCity && !normText(cleanAddr).includes(normText(effectiveCity))) {
-          attempts.push(`${cleanAddr}, ${effectiveCity}, ${stateName}, Brasil`);
+          addAttempt(`${cleanAddr}, ${effectiveCity}, ${stateName}, Brasil`);
         }
-        const rawAttempt = `${cleanAddr}, Brasil`;
-        if (!attempts.includes(rawAttempt)) attempts.push(rawAttempt);
+        addAttempt(`${cleanAddr}, Brasil`);
       }
       if (effectiveCity) {
-        attempts.push(`${effectiveCity}, ${stateName}, Brasil`);
+        addAttempt(`${effectiveCity}, ${stateName}, Brasil`);
       }
 
+      // 3. Try Photon first (fast, CORS-friendly, no strict autocomplete ban)
       for (const q of attempts) {
-        const hits = await queryNominatimRaw(q, 1);
-        if (hits.length > 0) {
-          const det = extractNominatimDetails(hits[0]);
+        const ph = await queryPhoton(q, 1);
+        if (ph.items.length > 0) {
+          const det = ph.items[0];
           return {
             lat: det.lat,
             lng: det.lng,
@@ -2494,6 +2623,22 @@
         }
       }
 
+      // 4. Fallback to Nominatim (single best query only, respects rate-limit circuit breaker)
+      if (attempts.length > 0) {
+        const nom = await queryNominatimRaw(attempts[0], 1);
+        if (nom.items.length > 0) {
+          const det = nom.items[0];
+          return {
+            lat: det.lat,
+            lng: det.lng,
+            detectedCity: det.detectedCity || effectiveCity,
+            detectedState: det.detectedState || effectiveState,
+            found: true
+          };
+        }
+      }
+
+      // 5. Offline city fallback
       const off = lookupOfflineCityCoords(effectiveCity);
       if (off) {
         return {
@@ -2524,6 +2669,7 @@
     const scopeSuggestItems = { cfg: [], stop: [], cli: [] };
     const scopeForceOther = { cfg: false, stop: false, cli: false };
     const scopeDebounce = { cfg: null, stop: null, cli: null };
+    const scopeAbortCtrl = { cfg: null, stop: null, cli: null };
 
     function setScopeStatus(scope, text, tone = '') {
       const el = document.getElementById(SCOPE_META[scope].statusId);
@@ -2644,12 +2790,22 @@
       }
     }
 
+    function onAddressKeydown(event, scope) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        clearTimeout(scopeDebounce[scope]);
+        lookupAddress(scope, true);
+      } else if (event.key === 'Escape') {
+        closeSuggestions(scope);
+      }
+    }
+
     function onAddressInput(scope) {
       const meta = SCOPE_META[scope];
       const raw = (document.getElementById(meta.addrId).value || '').trim();
       scopePinCache[scope] = null;
 
-      // Immediate local parsing if user typed/pasted "..., Matão - SP"
+      // Immediate local parsing if user typed/pasted "..., Matão - SP" (0 network calls)
       const parsed = extractCityStateFromText(raw);
       if (parsed.city) {
         applyDetectedCityState(scope, parsed.city, parsed.state);
@@ -2663,9 +2819,9 @@
       clearTimeout(scopeDebounce[scope]);
       const digits = raw.replace(/\D/g, '');
       if (digits.length === 8 && /^\d{5}-?\d{3}$/.test(raw)) {
-        scopeDebounce[scope] = setTimeout(() => lookupAddress(scope, false), 250);
+        scopeDebounce[scope] = setTimeout(() => lookupAddress(scope, false), 300);
       } else if (raw.length >= 6) {
-        scopeDebounce[scope] = setTimeout(() => lookupAddress(scope, false), 650);
+        scopeDebounce[scope] = setTimeout(() => lookupAddress(scope, false), 750);
       } else {
         closeSuggestions(scope);
       }
@@ -2694,20 +2850,34 @@
         return;
       }
 
-      if (btnEl) btnEl.disabled = true;
+      if (scopeAbortCtrl[scope]) {
+        scopeAbortCtrl[scope].abort();
+      }
+      const myCtrl = new AbortController();
+      scopeAbortCtrl[scope] = myCtrl;
+
+      if (btnEl && userClicked) btnEl.disabled = true;
       setScopeStatus(scope, 'Buscando endereço, cidade e estado...', '');
 
       try {
-        // 1. Check CEP first via ViaCEP
+        // 1. Check CEP first via ViaCEP / BrasilAPI
         const cepDigits = raw.replace(/\D/g, '');
         if (cepDigits.length === 8 && /^\d{5}-?\d{3}$/.test(raw)) {
           const cepData = await queryViaCEP(cepDigits);
+          if (myCtrl.signal.aborted) return;
           if (cepData) {
             const street = [cepData.logradouro, cepData.bairro].filter(Boolean).join(', ');
             const city = cepData.localidade || '';
             const uf = (cepData.uf || 'SP').toUpperCase();
-            const geo = await geocodeAddress(street || city, city, uf);
-            applyDetectedCityState(scope, city, uf, { lat: geo.lat, lng: geo.lng }, street || raw);
+            let pin = null;
+            if (isFinite(cepData.lat) && isFinite(cepData.lng) && cepData.lat !== null) {
+              pin = { lat: cepData.lat, lng: cepData.lng };
+            } else {
+              const geo = await geocodeAddress(street || city, city, uf);
+              pin = { lat: geo.lat, lng: geo.lng };
+            }
+            if (myCtrl.signal.aborted) return;
+            applyDetectedCityState(scope, city, uf, pin, street || raw);
             closeSuggestions(scope);
             setScopeStatus(scope, `CEP localizado: ${formatCityUF(city, uf)}`, 'ok');
             if (userClicked) showToast(`Endereço preenchido: ${formatCityUF(city, uf)}`);
@@ -2715,44 +2885,63 @@
           }
         }
 
-        // 2. Query Nominatim (if text already has city/state, search raw directly; else try raw + city bias)
+        // 2. Primary search via Photon (built for autocomplete, fast & CORS-safe)
         const parsed = extractCityStateFromText(raw);
-        let hits = [];
-        if (parsed.city || parsed.state || raw.includes(',')) {
-          hits = await queryNominatimRaw(`${raw}, Brasil`, 5);
-        }
-        if (hits.length === 0) {
-          const curCity = (cityEl.value || '').trim();
-          const curUF = (stateEl.value || 'SP').trim();
-          const stName = BR_STATES[curUF] || curUF;
-          if (curCity && !normText(raw).includes(normText(curCity))) {
-            hits = await queryNominatimRaw(`${raw}, ${curCity}, ${stName}, Brasil`, 5);
-          }
-        }
-        if (hits.length === 0) {
-          hits = await queryNominatimRaw(`${raw}, Brasil`, 5);
+        const curCity = (cityEl.value || '').trim();
+        const curUF = (stateEl.value || 'SP').trim();
+        const stName = BR_STATES[curUF] || curUF;
+
+        let primaryQuery = raw;
+        if (!parsed.city && !parsed.state && !raw.includes(',') && curCity && !scopeForceOther[scope]) {
+          primaryQuery = `${raw}, ${curCity}, ${stName}`;
         }
 
-        if (hits.length === 0) {
+        let apiError = false;
+        let parsedHits = [];
+        const ph1 = await queryPhoton(primaryQuery, 5, myCtrl.signal);
+        if (ph1.aborted) return;
+        apiError = ph1.error;
+        parsedHits = ph1.items;
+
+        // Retry Photon without city bias if biased query found nothing
+        if (parsedHits.length === 0 && primaryQuery !== raw) {
+          const ph2 = await queryPhoton(`${raw}, Brasil`, 5, myCtrl.signal);
+          if (ph2.aborted) return;
+          apiError = apiError && ph2.error;
+          parsedHits = ph2.items;
+        }
+
+        // 3. Fallback to Nominatim ONLY on explicit user click/Enter (never on keystroke)
+        if (parsedHits.length === 0 && userClicked) {
+          const nomQuery = (parsed.city || parsed.state) ? `${raw}, Brasil` : `${primaryQuery}, Brasil`;
+          const nom = await queryNominatimRaw(nomQuery, 5);
+          if (myCtrl.signal.aborted) return;
+          if (nom.items.length > 0) {
+            parsedHits = nom.items;
+            apiError = false;
+          } else if (nom.error) {
+            apiError = true;
+          }
+        }
+
+        if (parsedHits.length === 0) {
           closeSuggestions(scope);
           if (parsed.city) {
             applyDetectedCityState(scope, parsed.city, parsed.state);
             setScopeStatus(scope, `Cidade preenchida: ${formatCityUF(parsed.city, parsed.state)} (endereço aproximado)`, 'warn');
+          } else if (apiError) {
+            setScopeStatus(scope, 'Servidor de mapa instável no momento. Informe a cidade e o estado abaixo ou use o CEP.', 'warn');
           } else {
-            setScopeStatus(scope, 'Endereço não encontrado no mapa. Confira rua/número ou informe a cidade abaixo.', 'warn');
+            setScopeStatus(scope, 'Endereço não encontrado. Tente incluir a cidade (ex.: Rua X, Matão - SP) ou digite o CEP.', 'warn');
           }
           return;
         }
 
-        const parsedHits = hits.map(extractNominatimDetails);
-
-        // If user clicked Buscar and there's a clear top match (or single match), apply immediately!
         if (userClicked && parsedHits.length === 1) {
           selectAddressSuggestion(scope, 0, parsedHits);
           return;
         }
 
-        // Also auto-fill city/state from top hit if user clicked Buscar or if address clearly matches
         scopeSuggestItems[scope] = parsedHits;
         const sugEl = document.getElementById(meta.suggestId);
         sugEl.innerHTML = parsedHits.map((h, i) => {
